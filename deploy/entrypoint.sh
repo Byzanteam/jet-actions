@@ -4,6 +4,7 @@ set -eux
 # Set deploy key
 JET_DEPLOY_KEY_PATH=/tmp/deploy_key
 echo $INPUT_PRIVATE_KEY > $JET_DEPLOY_KEY_PATH
+sed -i 's/\\n/\n/g' $JET_DEPLOY_KEY_PATH
 chmod 600 $JET_DEPLOY_KEY_PATH
 
 # Deploy
