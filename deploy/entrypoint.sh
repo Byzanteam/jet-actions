@@ -10,6 +10,6 @@ chmod 600 $JET_DEPLOY_KEY_PATH
 # Deploy
 echo "🚧 Start to deploy"
 
-echo "cd $INPUT_DEPLOY_TO/jet/current && make update" | ssh $INPUT_DEPLOY_USER@$INPUT_DEPLOY_HOST -p $INPUT_DEPLOY_PORT -i $JET_DEPLOY_KEY_PATH -o StrictHostKeyChecking=no -T
+ssh $INPUT_DEPLOY_USER@$INPUT_DEPLOY_HOST -p $INPUT_DEPLOY_PORT -i $JET_DEPLOY_KEY_PATH -o StrictHostKeyChecking=no -T "cd $INPUT_DEPLOY_TO/jet/current && make update"
 
 echo "🚀 Successfully deployed!"
