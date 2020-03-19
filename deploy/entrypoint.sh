@@ -2,14 +2,13 @@
 set -eux
 
 # Set deploy key
-SSH_PATH=$HOME/.ssh
-mkdir -p $SSH_PATH
-echo $DEPLOY_KEY > $SSH_PATH/id_rsa
-chmod 600 $SSH_PATH/id_rsa
+JET_DEPLOY_KEY_PATH=/tmp/deploy_key
+echo $INPUT_DEPLOY_KEY > $JET_DEPLOY_KEY_PATH
+chmod 600 $JET_DEPLOY_KEY_PATH
 
 # Deploy
 echo "🚧 Start to deploy"
 
-echo "cd $DEPLOY_TO/jet/current && make update" | ssh $DEPLOY_USER@$DEPLOY_HOST -p $DEPLOY_PORT -o StrictHostKeyChecking=no -T
+echo "cd $INPUT_DEPLOY_TO/jet/current && make update" | ssh $INPUT_DEPLOY_USER@$INPUT_DEPLOY_HOST -p $INPUT_DEPLOY_PORT -i $JET_DEPLOY_KEY_PATH -o StrictHostKeyChecking=no -T
 
 echo "🚀 Successfully deployed!"
