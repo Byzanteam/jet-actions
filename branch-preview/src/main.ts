@@ -11,7 +11,7 @@ async function getOrCreateSite(
   const sites = await netlifyClient.listSitesForAccount({
     // eslint-disable-next-line @typescript-eslint/camelcase
     account_slug: accountSlug,
-    body: {
+    query: {
       name: siteName
     }
   })
