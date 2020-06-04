@@ -51,7 +51,7 @@ async function run(): Promise<void> {
     )
 
     // Deploy to Netlify
-    const deploy = netlifyClient.deploy(site.id, deployFolder, {
+    const deploy = await netlifyClient.deploy(site.id, deployFolder, {
       draft: false
     })
 
