@@ -3,6 +3,8 @@ import * as github from '@actions/github'
 import NetlifyAPI from 'netlify'
 import * as path from 'path'
 
+const PREFIX = 'jet-preview'
+
 async function getOrCreateSite(
   netlifyClient: InstanceType<typeof NetlifyAPI>,
   siteName: string,
@@ -10,18 +12,20 @@ async function getOrCreateSite(
 ): Promise<{id: string}> {
   let site
 
+  const name = `${PREFIX}-${siteName}`
+
   const sites = await netlifyClient.listSitesForAccount({
     // eslint-disable-next-line @typescript-eslint/camelcase
     account_slug: accountSlug,
-    name: siteName
+    name
   })
 
-  site = sites.find((element: {name: string}) => element.name === siteName)
+  site = sites.find((element: {name: string}) => element.name === name)
 
   if (!site) {
     site = await netlifyClient.createSite({
       body: {
-        name: siteName,
+        name,
         // eslint-disable-next-line @typescript-eslint/camelcase
         account_slug: accountSlug
       }
