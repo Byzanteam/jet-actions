@@ -1,0 +1,25 @@
+name: 'Branch preview'
+description: 'Deploy per branch to Netlify from GitHub Actions'
+author: 'Byzanteam'
+inputs:
+  netlify-auth:
+    description: Netlify auth token to deploy with
+    required: true
+  netlify-dir:
+    description: Specify a folder to deploy
+    required: true
+  netlify-site-name:
+    description: A site name to deploy to
+    required: true
+  netlify-account-slug:
+    description: Account slug to create the site under
+    required: true
+  github-token:
+    description: GitHub token
+    required: true
+outputs:
+  deploy-url:
+    description: Website URL
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
