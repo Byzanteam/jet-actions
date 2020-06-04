@@ -8,23 +8,25 @@ async function getOrCreateSite(
   siteName: string,
   accountSlug: string
 ): Promise<{id: string}> {
+  let site
+
   const sites = await netlifyClient.listSitesForAccount({
     // eslint-disable-next-line @typescript-eslint/camelcase
     account_slug: accountSlug,
-    query: {
-      name: siteName
-    }
+    name: siteName
   })
 
-  if (sites.length === 1) return sites[0]
+  site = sites.find((element: {name: string}) => element.name === siteName)
 
-  const site = await netlifyClient.createSite({
-    body: {
-      name: siteName,
-      // eslint-disable-next-line @typescript-eslint/camelcase
-      account_slug: accountSlug
-    }
-  })
+  if (!site) {
+    site = await netlifyClient.createSite({
+      body: {
+        name: siteName,
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        account_slug: accountSlug
+      }
+    })
+  }
 
   return site
 }
