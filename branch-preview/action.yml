@@ -11,6 +11,9 @@ inputs:
   netlify-site-name:
     description: A site name to deploy to
     required: true
+  netlify-account-slug:
+    description: Account slug to create the site under
+    required: true
   github-token:
     description: GitHub token
     required: true
