@@ -1,10 +1,22 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Branch preview'
+description: 'Deploy per branch to Netlify from GitHub Actions'
+author: 'Byzanteam'
 inputs:
-  myInput:              # change this
-    description: 'input description here'
-    default: 'default value if applicable'
+  netlify-auth:
+    description: Netlify auth token to deploy with
+    required: true
+  netlify-dir:
+    description: Specify a folder to deploy
+    required: true
+  netlify-site-name:
+    description: A site name to deploy to
+    required: true
+  github-token:
+    description: GitHub token
+    required: true
+outputs:
+  deploy-url:
+    description: Website URL
 runs:
   using: 'node12'
   main: 'dist/index.js'
