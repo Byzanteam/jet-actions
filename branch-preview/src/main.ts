@@ -122,7 +122,7 @@ async function commentOnPullRequest(
     repo: github.context.repo.repo,
     // eslint-disable-next-line @typescript-eslint/camelcase
     issue_number: prNumber,
-    body: message
+    body: `${commentIdentifierString}\n${message}`
   })
 }
 
