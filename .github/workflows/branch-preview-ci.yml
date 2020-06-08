@@ -10,6 +10,10 @@ on:
     paths:
     - 'branch-preview/**'
 
+defaults:
+  run:
+    working-directory: branch-preview
+
 jobs:
   build:
     runs-on: ubuntu-latest
