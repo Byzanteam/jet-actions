@@ -11,7 +11,7 @@ async function getOrCreateSite(
   netlifyClient: InstanceType<typeof NetlifyAPI>,
   siteName: string,
   accountSlug: string
-): Promise<{id: string}> {
+): Promise<{id: string; name: string}> {
   let site
 
   // convert the name from upper case to lower case
@@ -52,6 +52,8 @@ async function run(): Promise<void> {
       core.getInput('netlify-account-slug', {required: true})
     )
 
+    core.info(`Site with name(${site.name}) is created!`)
+
     // Resolve publish directory
     const deployFolder = path.resolve(
       process.cwd(),
@@ -81,6 +83,7 @@ async function run(): Promise<void> {
       await commentOnPullRequest(octokit, prNumber, message)
     }
   } catch (error) {
+    core.error(error)
     core.setFailed(error.message)
   }
 }
