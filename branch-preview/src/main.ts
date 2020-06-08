@@ -14,7 +14,9 @@ async function getOrCreateSite(
 ): Promise<{id: string}> {
   let site
 
-  const name = `${PREFIX}-${siteName}`
+  // convert the name from upper case to lower case
+  // convert underline to dash
+  const name = `${PREFIX}-${siteName}`.toLowerCase().replace(/_/g, '-')
 
   const sites = await netlifyClient.listSitesForAccount({
     // eslint-disable-next-line @typescript-eslint/camelcase
