@@ -8,6 +8,7 @@
     private-key: ${{ secrets.DEPLOYMENT_KEY }}
 ```
 
+## Branch Preview ![Branch preview CI](https://github.com/Byzanteam/jet-actions/workflows/Branch%20preview%20CI/badge.svg)
 ```yaml
 - name: Deploy to Netlify
   uses: byzanteam/jet-actions/branch-preview@master
