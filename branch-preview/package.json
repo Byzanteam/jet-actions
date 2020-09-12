@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "description": "Branch privew for jet-aircrew",
-  "main": "lib/main.js",
   "scripts": {
     "build": "tsc",
     "format": "prettier --write **/*.ts",
@@ -27,13 +26,13 @@
   "dependencies": {
     "@actions/core": "^1.2.4",
     "@actions/github": "^3.0.0",
-    "netlify": "^4.3.0"
+    "netlify": "^4.3.13"
   },
   "devDependencies": {
     "@types/jest": "^25.2.3",
     "@types/node": "^12.7.12",
     "@typescript-eslint/parser": "^3.2.0",
-    "@zeit/ncc": "^0.22.3",
+    "@vercel/ncc": "^0.24.0",
     "eslint": "^5.16.0",
     "eslint-plugin-github": "^2.0.0",
     "eslint-plugin-jest": "^23.13.2",
