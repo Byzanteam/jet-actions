@@ -1,0 +1,39 @@
+name: Setup Elixir
+description: Setup a specific version of Erlang/OTP and Elixir
+inputs:
+  fetch-depth:
+    description: Number of commits to fetch
+    default: 1
+  elixir-version:
+    description: Version range or exact version of Elixir
+    required: true
+  otp-version:
+    description: Version range or exact version of Erlang/OTP
+    required: true
+  cache-path:
+    description: Paths that should be cached
+    default: |
+      _build
+      deps
+outputs:
+  cache-hit:
+    description: A boolean value to indicate an exact cache was found
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: ${{ inputs.fetch-depth }}
+    - uses: erlef/setup-beam@v1
+      with:
+        otp-version: ${{ inputs.otp-version }}
+        elixir-version: ${{ inputs.elixir-version }}
+    - id: cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ inputs.cache-path }}
+        key: mix-${{ runner.os }}-${{ hashFiles('**/mix.lock') }}
+        restore-keys: |
+          mix-${{ runner.os }}-
+    - run: echo "::set-output name=cache-hit::${{ steps.cache.outputs.cache-hit }}"
+      shell: bash
