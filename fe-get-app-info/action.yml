@@ -1,0 +1,19 @@
+name: 'Get APP Info'
+description: get app name and version from package.json
+inputs:
+  package_file:
+    description: The package.json file
+    required: true
+    default: package.json
+
+outputs:
+  name:
+    description: The name field of package.json
+    value: ${{ steps.get-app-name.outputs.name }}
+  version:
+    description: The version field of package.json
+    value: ${{ steps.get-app-version.outputs.version }}
+
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
