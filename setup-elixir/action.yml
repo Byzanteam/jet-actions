@@ -32,8 +32,8 @@ runs:
       uses: actions/cache@v3
       with:
         path: ${{ inputs.cache-path }}
-        key: mix-${{ runner.os }}-${{ hashFiles('**/mix.lock') }}
+        key: mix-${{ runner.os }}-${{ inputs.otp-version }}-${{ inputs.elixir-version }}-${{ hashFiles('**/mix.lock') }}
         restore-keys: |
-          mix-${{ runner.os }}-
-    - run: echo "::set-output name=cache-hit::${{ steps.cache.outputs.cache-hit }}"
+          mix-${{ runner.os }}-${{ inputs.otp-version }}-${{ inputs.elixir-version }}-
+    - run: echo "cache-hit=${{ steps.cache.outputs.cache-hit }}" >> $GITHUB_OUTPUT
       shell: bash
