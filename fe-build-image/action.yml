@@ -52,6 +52,6 @@ runs:
           ${{ inputs.build_args }}
         push: true
         tags: |
-          ghcr.io/Byzanteam/${{ steps.get-app-info.outputs.name }}:${{ steps.get-app-info.outputs.version }}
+          ghcr.io/byzanteam/${{ steps.get-app-info.outputs.name }}:${{ steps.get-app-info.outputs.version }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
