@@ -5,6 +5,9 @@ inputs:
     description: "Build's context is the set of files located in the specified PATH or URL"
     required: false
     default: .
+  github_token:
+    description: The GITHUB_TOKEN
+    required: true
   dockerfile:
     description: path to Dockerfile
     required: false
@@ -28,7 +31,7 @@ runs:
       with:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ inputs.github_token }}
 
     - name: Get APP Info
       uses: byzanteam/jet-actions/fe-get-app-info@main
