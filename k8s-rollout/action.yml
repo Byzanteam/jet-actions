@@ -14,6 +14,9 @@ inputs:
   private_key:
     description: content of ssh private key. ex raw content of ~/.ssh/id_rsa
     required: true
+  namespace:
+    description: the namespace that application deployed
+    default: default
   resource:
     description: kubectl set image `$resource` $container=$registry/$image:$tag
     required: true
