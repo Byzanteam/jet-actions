@@ -1,0 +1,37 @@
+ame: front pr preview deploy
+description: "前端提交pull request 自动部署并反向代理"
+inputs:
+  values_file:
+    description: "local values yaml file"
+    required: true
+  app_name:
+    description: "deploy application name"
+    required: true
+  image_tag:
+    description: "deploy application tag"
+    required: true
+  ssh_host:
+    description: "ssh connect host"
+    required: true
+  ssh_user:
+    description: "ssh connect user name"
+    required: true
+  ssh_port:
+    description: "ssh connect port"
+    required: true
+  ssh_key:
+    description: "ssh connect  priviate key"
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Deploy front app
+      shell: bash
+      run: |
+        echo ${{ inputs.ssh_key }} | base64 -d > private.key && chmod 600 private.key
+        ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
+          "helm repo add app-template https://Byzanteam.github.io/helm-charts"
+        ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
+          "helm upgrade --install ${{ inputs.app_name }} app-template/application-chart-template -f ${{ inputs.values_file }} --set image.tag=${{ inputs.image_tag }}"
+
