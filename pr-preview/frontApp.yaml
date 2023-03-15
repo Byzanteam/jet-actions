@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ frontApp_name }}
+  labels:
+    app.kubernetes.io/name: {{ frontApp_name }}
+spec:
+  imagePullSecrets:
+  - name: {{ frontApp_name }}-docker-registry
+  containers:
+  - name: {{ frontApp_name }}
+    image: ghcr.io/byzanteam/{{ frontApp_name }}:{{ frontApp_version }}
+    ports:
+    - containerPort: 80
+      name: {{ frontApp_name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ frontApp_name }}
+spec:
+  selector:
+    app.kubernetes.io/name: {{ frontApp_name }}
+  ports:
+  - name: {{ frontApp_name }}
+    port: 80
+    targetPort: {{ frontApp_name }}
