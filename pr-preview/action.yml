@@ -1,6 +1,6 @@
 ame: front pr preview deploy
 description: "前端提交pull request 自动部署并反向代理"
-INPUTS:
+inputs:
   context:
     description: "Build's context is the set of files located in the specified PATH or URL"
     required: false
@@ -9,9 +9,6 @@ INPUTS:
     description: path to Dockerfile
     required: false
     default: ./deploy/Dockerfile
-  build_args:
-    description: List of build-time variables
-    required: false
   package_file:
     description: The package.json file
     default: package.json
@@ -23,44 +20,76 @@ INPUTS:
   deploy_file:
     description: "deploy app file"
     required: false
-    default: ./frontApp.yaml
+    default: frontApp.yaml
+  registry_token:
+    description: "secret registry token"
+    required: true
+  kube_conf:
+    description: "secret kubernetes cluster config"
+    required: true
+  parh:
+    description: "front app path"
+    required: true
 
 runs:
   using: 'composite'
   steps:
-    - name: Build Image
-      uses: byzanteam/jet-actions/fe-build-image@main
+    - name: Extract app name and version
+      id: extract
+      shell: bash
+      run: |
+        echo "app_name=$(jq -r '.name' package.json)" >> $GITHUB_OUTPUT
+        echo "app_version=$(jq -r '.version' package.json)" >> $GITHUB_OUTPUT
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        registry: registry.cn-hangzhou.aliyuncs.com
+        username: yangke@skylark
+        password: ${{ inputs.registry_token }}
+
+    - name: Build and push
+      uses: docker/build-push-action@v3
       with:
         context: ${{ inputs.context }}
-        github_token: ${{ secret.REGISTRY_TOKEN }}
-        docker_file: ${{ inputs.dockerfile }}
+        file: ${{ inputs.dockerfile }}
         build-args: |
-          ${{ inputs.build_args }}
-        package_file: ${{ inputs.package_file }}
+          APP_VSN=${{ steps.extract.outputs.app_version }}
+          APP_NAME=${{ steps.extract.outputs.app_name }}
+          APP_USE=brach_preview
+          SOURCE_REPO_URL=${{ github.repositoryUrl }}
+          SOURCE_SHA=${{ github.sha }}
+        push: true
+        tags: registry.cn-hangzhou.aliyuncs.com/skylark/${{ steps.extract.outputs.app_name }}:${{ steps.extract.outputs.app_version }}
+
     - name: install kubectl
+      shell: bash
       run: |
         sudo curl --retry 5 --retry-delay 2 --fail -sL -o /usr/local/bin/kubectl "https://storage.googleapis.com/kubernetes-release/release/v${{ inputs.kubectl_version }}/bin/linux/amd64/kubectl"
         sudo chmod +x /usr/local/bin/kubectl
-        mkdir -p $HOME/.kube
-        echo "${{ secret.KUBE_CONF }}" | base64 -d > $HOME/.kube/config
-    - name: Extract app name and version
-      id: extract
-      run: |
-        APP_NAME=$(jq -r '.name' ${{ inputs.package_file }})
-        APP_VERSION=$(jq -r '.version' ${{ inputs.package_file }})
-        echo "app_name=$APP_NAME" >> $GITHUB_OUTPUT
-        echo "app_version=$APP_VERSION" >> $GITHUB_OUTPUT
-    - name: Render app.yaml template
-      run: |
-        sed -i "s/{{ frontApp_name }}/${{ steps.build.outputs.app_name }}/g" ${{ inputs.deploy_file }}
-        sed -i "s/{{ frontApp_version }}/${{ steps.build.outputs.app_version }}/g" ${{ inputs.deploy_file }}
-    - name: Deploy front app
-      run: |
-        echo ${{ secret.KUBE_CONF }} | base64 -d > kubeconfig
-        export KUBECONFIG=kubeconfig
-        kubectl create secret docker-registry ${{ steps.build.outputs.app_name }}-docker-registry \
-        --docker-server=ghcr.io/ \
-        --docker-username=${{ github.actor }} \
-        --docker-password=${{ secret.GITHUB_TOKEN }}
 
-        kubectl apply -f ${{ inputs.deploy_file }}
+    - name: Render app.yaml template
+      shell: bash
+      run: |
+        sed -i "s/frontApp_name/${{ steps.extract.outputs.app_name }}/g" ${{ inputs.deploy_file }}
+        sed -i "s/frontApp_version/${{ steps.extract.outputs.app_version }}/g" ${{ inputs.deploy_file }}
+        sed -i "s/frontApp_path/${{ inputs.path }}/g" ${{ inputs.deploy_file }}
+
+    - name: Deploy front app
+      shell: bash
+      env:
+        KUBE_CONF: ${{ inputs.kube_conf }}
+        REGISTRY_TOKEN: ${{ inputs.registry_token }}
+      run: |
+        echo $KUBE_CONF | base64 -d > kubeconfig
+        export KUBECONFIG=kubeconfig
+        kubectl create secret docker-registry ${{ steps.extract.outputs.app_name }}-docker-registry \
+          --docker-server=registry.cn-hangzhou.aliyuncs.com \
+          --docker-username=yangke@skylark \
+          --docker-password=$REGISTRY_TOKEN \
+          --docker-email=dev@byzan.team
+        envsubst < ${{ inputs.deploy_file }} | kubectl apply -f -
+

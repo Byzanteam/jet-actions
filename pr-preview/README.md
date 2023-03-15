@@ -10,6 +10,8 @@ Traefik->>Application: 转发请求
 Application->>Traefik: 响应请求
 Traefik->>Developer: 显示视图
 ```
+![image](https://user-images.githubusercontent.com/48484963/225221175-b97e57ed-1915-4f0d-afdd-9bd499aa0739.png)
+
 ## HowTo
 ```yaml
 - name: pr preview
@@ -17,11 +19,12 @@ Traefik->>Developer: 显示视图
   with:
     context: .
     dockerfile: ./deploy/Dockerfile
-    build-args: |
-      SOME_CUSTOM_BUILD_ARG=xxx
     package_file: package.json
     kubectl_version: "1.25.7"
     deploy_file: ./frontApp.yaml
+    registry_token: ${{ secrets.REGISTRY_TOKEN }}
+    kube_conf: ${{ secrets.KUBE_CONF }}
+    path: /test
 ```
 
 添加 secret 参数到 repo 中，`Settings->Secrets and variables->Actions->Repository secrets`:
