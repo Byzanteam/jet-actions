@@ -10,6 +10,7 @@ spec:
   containers:
   - name: frontApp_name
     image: registry.cn-hangzhou.aliyuncs.com/skylark/frontApp_name:frontApp_version
+    imagePullPolicy: Never
     ports:
     - containerPort: 80
       name: frontApp_name

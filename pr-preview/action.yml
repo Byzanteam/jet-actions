@@ -1,10 +1,6 @@
 ame: front pr preview deploy
 description: "前端提交pull request 自动部署并反向代理"
 inputs:
-  context:
-    description: "Build's context is the set of files located in the specified PATH or URL"
-    required: false
-    default: .
   dockerfile:
     description: path to Dockerfile
     required: false
@@ -21,14 +17,23 @@ inputs:
     description: "deploy app file"
     required: false
     default: frontApp.yaml
-  registry_token:
-    description: "secret registry token"
+  host:
+    description: "ssh connect host"
+    required: true
+  user:
+    description: "ssh connect user name"
+    required: true
+  port:
+    description: "ssh connect port"
+    required: true
+  path:
+    description: "front app path"
     required: true
   kube_conf:
     description: "secret kubernetes cluster config"
     required: true
-  parh:
-    description: "front app path"
+  ssh_key:
+    description: "ssh connect  priviate key"
     required: true
 
 runs:
@@ -41,29 +46,22 @@ runs:
         echo "app_name=$(jq -r '.name' package.json)" >> $GITHUB_OUTPUT
         echo "app_version=$(jq -r '.version' package.json)" >> $GITHUB_OUTPUT
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+    - name: Build Docker image
+      shell: bash
+      run: docker build -t ${{ steps.extract.outputs.app_name }}:${{ steps.extract.outputs.app_version }} ${{ inputs.dockerfile }}
 
-    - name: Login to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        registry: registry.cn-hangzhou.aliyuncs.com
-        username: yangke@skylark
-        password: ${{ inputs.registry_token }}
+    - name: Export Docker image
+      shell: bash
+      run: docker save ${{ steps.extract.outputs.app_name }}:${{ steps.extract.outputs.app_version }} -o ${{ steps.extract.outputs.app_name }}.tar
 
-    - name: Build and push
-      uses: docker/build-push-action@v3
-      with:
-        context: ${{ inputs.context }}
-        file: ${{ inputs.dockerfile }}
-        build-args: |
-          APP_VSN=${{ steps.extract.outputs.app_version }}
-          APP_NAME=${{ steps.extract.outputs.app_name }}
-          APP_USE=brach_preview
-          SOURCE_REPO_URL=${{ github.repositoryUrl }}
-          SOURCE_SHA=${{ github.sha }}
-        push: true
-        tags: registry.cn-hangzhou.aliyuncs.com/skylark/${{ steps.extract.outputs.app_name }}:${{ steps.extract.outputs.app_version }}
+    - name: Upload image to remote host
+      shell: bash
+      run: |
+        echo ${{ inputs.ssh_key }} | base64 -d > private.key && chmod 600 private.key
+        scp -i private.key -o "StrictHostKeyChecking=no" -P ${{ inputs.port }} \
+          ${{ steps.extract.outputs.app_name }}.tar ${{ inputs.user }}@${{ inputs.host }}:/tmp/${{ steps.extract.outputs.app_name }}.tar 
+        ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
+          "ctr -n k8s.io i import /tmp/${{ steps.extract.outputs.app_name }}.tar"
 
     - name: install kubectl
       shell: bash
@@ -82,14 +80,8 @@ runs:
       shell: bash
       env:
         KUBE_CONF: ${{ inputs.kube_conf }}
-        REGISTRY_TOKEN: ${{ inputs.registry_token }}
       run: |
         echo $KUBE_CONF | base64 -d > kubeconfig
         export KUBECONFIG=kubeconfig
-        kubectl create secret docker-registry ${{ steps.extract.outputs.app_name }}-docker-registry \
-          --docker-server=registry.cn-hangzhou.aliyuncs.com \
-          --docker-username=yangke@skylark \
-          --docker-password=$REGISTRY_TOKEN \
-          --docker-email=dev@byzan.team
         envsubst < ${{ inputs.deploy_file }} | kubectl apply -f -
 

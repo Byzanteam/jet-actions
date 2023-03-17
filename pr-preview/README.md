@@ -17,17 +17,20 @@ Traefik->>Developer: 显示视图
 - name: pr preview
   uses: byzanteam/jet-actions/pr-preview@main
   with:
-    context: .
     dockerfile: ./deploy/Dockerfile
     package_file: package.json
     kubectl_version: "1.25.7"
     deploy_file: ./frontApp.yaml
-    registry_token: ${{ secrets.REGISTRY_TOKEN }}
+    host: IP_Address
+    user: Username
+    port: 22
     kube_conf: ${{ secrets.KUBE_CONF }}
-    path: /test
+    path: test
+    ssh_key: ${{ secrets.SSH_KEY }}
 ```
 
 添加 secret 参数到 repo 中，`Settings->Secrets and variables->Actions->Repository secrets`:
-* REGISTRY_TOKEN
+* SSH_KEY
 * KUBE_CONF 
 > base64 encoding ~/.kube/config
+> base64 encoding ~/.ssh/id_rsa
