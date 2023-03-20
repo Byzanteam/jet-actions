@@ -29,3 +29,4 @@ Traefik->>Developer: 显示视图
 添加 secret 参数到 repo 中，`Settings->Secrets and variables->Actions->Repository secrets`:
 * SSH_KEY
 > base64 encoding ~/.ssh/id_rsa
+
