@@ -1,36 +1,23 @@
 ame: front pr preview deploy
 description: "前端提交pull request 自动部署并反向代理"
 inputs:
-  dockerfile:
-    description: path to Dockerfile
-    required: false
-    default: ./deploy/Dockerfile
-  package_file:
-    description: The package.json file
-    default: package.json
-    required: false
-  kubectl_version:
-    description: "Version of kubectl to use"
-    required: false
-    default: "1.25.7"
-  deploy_file:
-    description: "deploy app file"
-    required: false
-    default: frontApp.yaml
-  host:
+  values_file:
+    description: "local values yaml file"
+    required: true
+  app_name:
+    description: "deploy application name"
+    required: true
+  image_tag:
+    description: "deploy application tag"
+    required: true
+  ssh_host:
     description: "ssh connect host"
     required: true
-  user:
+  ssh_user:
     description: "ssh connect user name"
     required: true
-  port:
+  ssh_port:
     description: "ssh connect port"
-    required: true
-  path:
-    description: "front app path"
-    required: true
-  kube_conf:
-    description: "secret kubernetes cluster config"
     required: true
   ssh_key:
     description: "ssh connect  priviate key"
@@ -39,49 +26,12 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Extract app name and version
-      id: extract
-      shell: bash
-      run: |
-        echo "app_name=$(jq -r '.name' package.json)" >> $GITHUB_OUTPUT
-        echo "app_version=$(jq -r '.version' package.json)" >> $GITHUB_OUTPUT
-
-    - name: Build Docker image
-      shell: bash
-      run: docker build -t ${{ steps.extract.outputs.app_name }}:${{ steps.extract.outputs.app_version }} ${{ inputs.dockerfile }}
-
-    - name: Export Docker image
-      shell: bash
-      run: docker save ${{ steps.extract.outputs.app_name }}:${{ steps.extract.outputs.app_version }} -o ${{ steps.extract.outputs.app_name }}.tar
-
-    - name: Upload image to remote host
+    - name: Deploy front app
       shell: bash
       run: |
         echo ${{ inputs.ssh_key }} | base64 -d > private.key && chmod 600 private.key
-        scp -i private.key -o "StrictHostKeyChecking=no" -P ${{ inputs.port }} \
-          ${{ steps.extract.outputs.app_name }}.tar ${{ inputs.user }}@${{ inputs.host }}:/tmp/${{ steps.extract.outputs.app_name }}.tar 
         ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
-          "ctr -n k8s.io i import /tmp/${{ steps.extract.outputs.app_name }}.tar"
-
-    - name: install kubectl
-      shell: bash
-      run: |
-        sudo curl --retry 5 --retry-delay 2 --fail -sL -o /usr/local/bin/kubectl "https://storage.googleapis.com/kubernetes-release/release/v${{ inputs.kubectl_version }}/bin/linux/amd64/kubectl"
-        sudo chmod +x /usr/local/bin/kubectl
-
-    - name: Render app.yaml template
-      shell: bash
-      run: |
-        sed -i "s/frontApp_name/${{ steps.extract.outputs.app_name }}/g" ${{ inputs.deploy_file }}
-        sed -i "s/frontApp_version/${{ steps.extract.outputs.app_version }}/g" ${{ inputs.deploy_file }}
-        sed -i "s/frontApp_path/${{ inputs.path }}/g" ${{ inputs.deploy_file }}
-
-    - name: Deploy front app
-      shell: bash
-      env:
-        KUBE_CONF: ${{ inputs.kube_conf }}
-      run: |
-        echo $KUBE_CONF | base64 -d > kubeconfig
-        export KUBECONFIG=kubeconfig
-        envsubst < ${{ inputs.deploy_file }} | kubectl apply -f -
+          "helm repo add app-template https://Byzanteam.github.io/helm-charts"
+        ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
+          "helm upgrade --install ${{ inputs.app_name }} app-template/application-chart-template -f ${{ inputs.values_file }} --set image.tag=${{ inputs.image_tag }}"
 
