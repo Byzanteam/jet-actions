@@ -1,11 +1,11 @@
 ```yaml
 - name: Deploy it
-  uses: byzanteam/jet-actions/deploy@main
+  uses: byzanteam/jet-actions/compose-upgrade@main
   with:
-    deploy-host: beta.jet.work
-    deploy-user: jet
-    deploy-to: /var/www
-    private-key: ${{ secrets.DEPLOYMENT_KEY }}
+    deploy_host: beta.jet.work
+    deploy_user: jet
+    deploy_to: /var/www
+    private_key: ${{ secrets.DEPLOYMENT_KEY }}
     image_name: ""
     image_version: ""
 ```

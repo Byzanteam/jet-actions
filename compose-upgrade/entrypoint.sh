@@ -5,7 +5,7 @@ set -eux
 UPGRADE_KEY_PATH=/tmp/deploy_key
 echo "$INPUT_PRIVATE_KEY" > $UPGRADE_KEY_PATH
 sed -i 's/\\n/\n/g' $UPGRADE_KEY_PATH
-chmod 600 $UPGRAGE_KEY_PATH
+chmod 600 $UPGRADE_KEY_PATH
 
 # Deploy
 echo "🚧 Start to upgrade"
