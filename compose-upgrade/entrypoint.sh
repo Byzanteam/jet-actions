@@ -10,12 +10,15 @@ chmod 600 $UPGRADE_KEY_PATH
 # Deploy
 echo "🚧 Start to upgrade"
 
-ssh $INPUT_DEPLOY_USER@$INPUT_DEPLOY_HOST -p $INPUT_DEPLOY_PORT -i $UPGRADE_KEY_PATH -o StrictHostKeyChecking=no -T \
-	'image=$(docker ps --format "{{.Image}}" |\
-	grep $INPUT_IMAGE_NAME:$INPUT_IMAGE_VERSION |\
-	awk -F/ "{print \$NF}") &&\
-	sed "s/$image/$INPUT_IMAGE_NAME:$INPUT_IMAGE_VERSION/" $INPUT_DEPLOY_TO/docker-compose.yml'
+# Gets the tag of the current image
+image=$(ssh $INPUT_DEPLOY_USER@$INPUT_DEPLOY_HOST -p $INPUT_DEPLOY_PORT -i $UPGRADE_KEY_PATH -o StrictHostKeyChecking=no -T \
+	"docker ps --format '{{.Image}}' | grep $INPUT_IMAGE_NAME | awk -F/ '{print \$NF}'")
 
+# Replace the image in the docker-compose file
+ssh $INPUT_DEPLOY_USER@$INPUT_DEPLOY_HOST -p $INPUT_DEPLOY_PORT -i $UPGRADE_KEY_PATH -o StrictHostKeyChecking=no -T \
+	"sed -i \"s/$image/$INPUT_IMAGE_NAME:$INPUT_IMAGE_VERSION/\" $INPUT_DEPLOY_TO/docker-compose.yml"
+
+# Upgrade image
 ssh $INPUT_DEPLOY_USER@$INPUT_DEPLOY_HOST -p $INPUT_DEPLOY_PORT -i $UPGRADE_KEY_PATH -o StrictHostKeyChecking=no -T \
 	"cd $INPUT_DEPLOY_TO && docker-compose up -d"
 
