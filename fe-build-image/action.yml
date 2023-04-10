@@ -1,13 +1,13 @@
 name: 'FE Build Image'
 description: Build and push front-end image for deploy
 inputs:
+  registries:
+    description: "The list of registries. Format like this: registry-site,namespace,username,password"
+    required: true
   context:
     description: "Build's context is the set of files located in the specified PATH or URL"
     required: false
     default: .
-  github_token:
-    description: The GITHUB_TOKEN
-    required: true
   dockerfile:
     description: path to Dockerfile
     required: false
@@ -26,18 +26,45 @@ runs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v2
-      with:
-        registry: ghcr.io
-        username: ${{ github.repository_owner }}
-        password: ${{ inputs.github_token }}
+    - name: Set up Docker image name
+      id: image
+      shell: bash
+      run: |
+        echo "image_name=`basename ${{ github.repository }}`" >> $GITHUB_OUTPUT
 
-    - name: Get APP Info
-      uses: byzanteam/jet-actions/fe-get-app-info@main
+    - name: Set up Docker registries info
+      id: registries
+      shell: bash
+      run: |
+        IMAGE_NAME=${{ steps.image.outputs.image_name }}
+        echo "images<<EOF" >> $GITHUB_OUTPUT
+        echo "${{ inputs.registries }}" | while read line; do
+          echo "$line" | awk -F',' "{print \$1\"/\"\$2\"/$IMAGE_NAME\"}" >> $GITHUB_OUTPUT
+        done
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Login to the custom registries
+      shell: bash
+      run: |
+        echo "${{ inputs.registries }}" | while read line; do
+          REGISTRY=$(echo $line | awk -F',' '{print $1}')
+          USERNAME=$(echo $line | awk -F',' '{print $3}')
+          PASSWORD=$(echo $line | awk -F',' '{print $4}')
+          docker login -u $USERNAME -p $PASSWORD $REGISTRY
+        done
+
+    - name: Docker meta
+      id: meta
+      uses: docker/metadata-action@v4
       with:
-        package_file: ${{ inputs.package_file }}
-      id: get-app-info
+        images: ${{ steps.registries.outputs.images }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+          type=sha
 
     - name: Build and push
       uses: docker/build-push-action@v3
@@ -45,13 +72,12 @@ runs:
         context: ${{ inputs.context }}
         file: ${{ inputs.dockerfile }}
         build-args: |
-          APP_VSN=${{ steps.get-app-info.outputs.version }}
-          APP_NAME=${{ steps.get-app-info.outputs.name }}
+          APP_VSN=${{ steps.meta.outputs.version }}
+          APP_NAME=${{ steps.image.outputs.image_name }}
           SOURCE_REPO_URL=${{ github.repositoryUrl }}
           SOURCE_SHA=${{ github.sha }}
           ${{ inputs.build_args }}
         push: true
-        tags: |
-          ghcr.io/byzanteam/${{ steps.get-app-info.outputs.name }}:${{ steps.get-app-info.outputs.version }}
+        tags: ${{ steps.meta.outputs.tags }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
