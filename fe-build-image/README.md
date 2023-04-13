@@ -16,7 +16,7 @@ Build and push front-end image for deploy
       SOME_CUSTOM_BUILD_ARG=xxx
     package_file: package.json
 ```
-## 注：定义 registries 变量时应以一下格式
+## 注：定义 registries 变量时应该使用以下格式
 ```yaml
 registries: |-
   registry,namespace,username,password
