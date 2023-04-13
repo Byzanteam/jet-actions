@@ -50,7 +50,7 @@ runs:
           REGISTRY=$(echo $line | awk -F',' '{print $1}')
           USERNAME=$(echo $line | awk -F',' '{print $3}')
           PASSWORD=$(echo $line | awk -F',' '{print $4}')
-          docker login -u $USERNAME -p $PASSWORD $REGISTRY
+          echo $PASSWORD | docker login -u $USERNAME --password-stdin $REGISTRY
         done
 
     - name: Docker meta
@@ -79,5 +79,19 @@ runs:
           ${{ inputs.build_args }}
         push: true
         tags: ${{ steps.meta.outputs.tags }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+    - name: Move cache
+      shell: bash
+      run: |
+        rm -rf /tmp/.buildx-cache
+        mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+    - name: Logout the custom registries
+      shell: bash
+      run: |
+        echo "${{ inputs.registries }}" | while read line; do
+          REGISTRY=$(echo $line | awk -F',' '{print $1}')
+          docker logout $REGISTRY
+        done
