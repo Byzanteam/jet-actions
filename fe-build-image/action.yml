@@ -1,29 +1,24 @@
 name: 'FE Build Image'
 description: Build and push front-end image for deploy
-defaults:
-  run:
 inputs:
   registries:
     description: "This parameter is a list of registries separated by a newline character. Each registry should be formatted as follows: ${hostname},${namespace},${username},${password}."
-    required: true
+    required: false
+    default: ghcr.io,byzanteam,${{ github.repository_owner }},${{ github.token }}
   context:
     description: "Build's context is the set of files located in the specified PATH or URL"
     required: false
     default: .
   dockerfile:
-    description: path to Dockerfile
+    description: Path to Dockerfile
     required: false
     default: ./deploy/Dockerfile
   build_args:
     description: List of build-time variables
     required: false
-  package_file:
-    description: The package.json file
-    default: package.json
-    required: false
-  cache_dir:
-    description: When using self hosted to builds the image, should set the cache storage directory
-    default: ''
+  cache_type:
+    description: "When using self hosted to builds the image, should set the cache storage directory. Only two values are supported: local and gha."
+    default: 'gha'
     required: false
 
 runs:
@@ -37,20 +32,6 @@ runs:
       shell: bash
       run: |
         echo "image_name=`basename ${{ github.repository }}`" >> $GITHUB_OUTPUT
-
-    - if: ${{ inputs.cache_type != '' }}
-      id: cache
-      shell: bash
-      run: |
-        echo "cache-from=\"type=local,src=${{ inputs.cache_dir }}-${{ steps.image.outputs.image_name }}\"" >> $GITHUB_OUTPUT
-        echo "cache-to=\"type=local,dest=${{ inputs.cache_dir }}-new-${{ steps.image.outputs.image_name }}\"" >> $GITHUB_OUTPUT
-
-    - if: ${{ inputs.cache_type == '' }}
-      id: cache
-      shell: bash
-      run: |
-        echo "cache-from=\"type=gha\"" >> $GITHUB_OUTPUT
-        echo "cache-to=\"type=gha\"" >> $GITHUB_OUTPUT
 
     - name: Set up Docker registries info
       id: registries
@@ -85,7 +66,8 @@ runs:
           type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
           type=sha
 
-    - name: Build and push
+    - if: ${{ inputs.cache_type == 'gha' }}
+      name: Build and push
       uses: docker/build-push-action@v3
       with:
         context: ${{ inputs.context }}
@@ -99,18 +81,33 @@ runs:
         push: true
         labels: ${{ steps.meta.outputs.labels }}
         tags: ${{ steps.meta.outputs.tags }}
-#         cache-from: type=gha
-#         cache-to: type=gha,mode=max
-        cache-from: ${{ steps.cache.outputs.cache-from }}
-        cache-to: ${{ steps.cache.outputs.cache-to }}, mode=max
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
-    - name: Move cache
-      if: ${{ inputs.cache_dir != '' }}
+    - if: ${{ inputs.cache_type == 'local' }}
+      name: Build and push
+      uses: docker/build-push-action@v3
+      with:
+        context: ${{ inputs.context }}
+        file: ${{ inputs.dockerfile }}
+        build-args: |
+          APP_VSN=${{ steps.meta.outputs.version }}
+          APP_NAME=${{ steps.image.outputs.image_name }}
+          SOURCE_REPO_URL=${{ github.repositoryUrl }}
+          SOURCE_SHA=${{ github.sha }}
+          ${{ inputs.build_args }}
+        push: true
+        labels: ${{ steps.meta.outputs.labels }}
+        tags: ${{ steps.meta.outputs.tags }}
+        cache-from: type=local,src=/tmp/.buildx-cache-${{ steps.image.outputs.image_name }}
+        cache-to: type=local,dest=/tmp/.buildx-cache-${{ steps.image.outputs.image_name }}-new,mode=max
+
+    - if: ${{ inputs.cache_type == 'local' }}
+      name: Move cache
       shell: bash
       run: |
-        rm -rf /tmp/.buildx-cache
-        mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
+        rm -rf /tmp/.buildx-cache-${{ steps.image.outputs.image_name }}
+        mv /tmp/.buildx-cache-${{ steps.image.outputs.image_name }}-new /tmp/.buildx-cache-${{ steps.image.outputs.image_name }}
 
     - name: Logout the custom registries
       shell: bash
