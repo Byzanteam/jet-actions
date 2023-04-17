@@ -1,25 +1,31 @@
 #!/bin/sh -l
 set -eux
 
-# Set deploy key
-UPGRADE_KEY_PATH=/tmp/deploy_key
-echo "$INPUT_PRIVATE_KEY" > $UPGRADE_KEY_PATH
-sed -i 's/\\n/\n/g' $UPGRADE_KEY_PATH
-chmod 600 $UPGRADE_KEY_PATH
+echo "::group::🔑 Set deploy key"
+KEY_PATH=/tmp/deploy_key
+echo "$INPUT_PRIVATE_KEY" > $KEY_PATH
+sed -i 's/\\n/\n/g' $KEY_PATH
+chmod 600 $KEY_PATH
 
-# Deploy
-echo "🚧 Start to upgrade"
+echo "::endgroup::"
 
-# Gets the tag of the current image
-image=$(ssh $INPUT_DEPLOY_USER@$INPUT_DEPLOY_HOST -p $INPUT_DEPLOY_PORT -i $UPGRADE_KEY_PATH -o StrictHostKeyChecking=no -T \
-	"docker ps --format '{{.Image}}' | grep $INPUT_IMAGE_NAME | awk -F/ '{print \$NF}'")
+echo "::group::🚧 The $INPUT_SERVICE_NAME service is undergoing an upgrade on $INPUT_HOST"
+# Backup remote host docker-compose file
+ssh $INPUT_USER@$INPUT_HOST -p $INPUT_PORT -i $KEY_PATH -o StrictHostKeyChecking=no -T \
+	"cp $INPUT_DOCKER_COMPOSE_FILE_PATH $INPUT_DOCKER_COMPOSE_FILE_PATH.`date +%Y%m%d%H%M`.bak"
 
-# Replace the image in the docker-compose file
-ssh $INPUT_DEPLOY_USER@$INPUT_DEPLOY_HOST -p $INPUT_DEPLOY_PORT -i $UPGRADE_KEY_PATH -o StrictHostKeyChecking=no -T \
-	"sed -i \"s/$image/$INPUT_IMAGE_NAME:$INPUT_IMAGE_VERSION/\" $INPUT_DEPLOY_TO/docker-compose.yml"
+# Modify the remote host docker-compose file
+ssh $INPUT_USER@$INPUT_HOST -p $INPUT_PORT -i $KEY_PATH -o StrictHostKeyChecking=no -T \
+	"cat $INPUT_DOCKER_COMPOSE_FILE_PATH" | \
+        yq ".services.$INPUT_SERVICE_NAME.image=\"$INPUT_IMAGE\"" | \
+        ssh $INPUT_USER@$INPUT_HOST -p $INPUT_PORT -i $KEY_PATH -o StrictHostKeyChecking=no -T \
+		"tee $INPUT_DOCKER_COMPOSE_FILE_PATH"
 
-# Upgrade image
-ssh $INPUT_DEPLOY_USER@$INPUT_DEPLOY_HOST -p $INPUT_DEPLOY_PORT -i $UPGRADE_KEY_PATH -o StrictHostKeyChecking=no -T \
-	"cd $INPUT_DEPLOY_TO && docker-compose up -d"
+# Upgrade application
+ssh $INPUT_USER@$INPUT_HOST -p $INPUT_PORT -i $KEY_PATH -o StrictHostKeyChecking=no -T \
+	"docker-compose -f $INPUT_DOCKER_COMPOSE_FILE_PATH up -d"
 
-echo "🚀 Successfully deployed!"
+echo "::endgroup::"
+
+echo "::group::🚀 The $INPUT_SERVICE_NAME service has been upgraded on $INPUT_HOST successfully!"
+echo "::endgroup::"

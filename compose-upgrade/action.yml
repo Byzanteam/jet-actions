@@ -1,27 +1,27 @@
-name: Deploy
-description: Deploy to the server
+name: Upgraded by compose
+description: "Use docker compose to upgrade the remote host's services"
 inputs:
-  deploy_host:
+  host:
     description: ssh host
     required: true
-  deploy_port:
+  port:
     description: ssh port, default is 22
-    required: true
+    required: false
     default: 22
-  deploy_user:
+  user:
     description: ssh user
     required: true
-  deploy_to:
-    description: deploy-to directory
+  docker_compose_file_path:
+    description: upgrade docker compose file path directory
     required: true
   private_key:
     description: content of ssh private key. ex raw content of ~/.ssh/id_rsa
     required: true
-  image_name:
-    description: upgrade image name
+  service_name:
+    description: upgrade application serice name
     required: true
-  image_version:
-    description: upgrade image version
+  image:
+    description: upgrade application image
     required: true
 runs:
   using: 'docker'

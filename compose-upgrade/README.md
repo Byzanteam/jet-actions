@@ -1,11 +1,12 @@
 ```yaml
-- name: Deploy it
+- name: Upgraded by compose
   uses: byzanteam/jet-actions/compose-upgrade@main
   with:
-    deploy_host: beta.jet.work
-    deploy_user: jet
-    deploy_to: /var/www
+    host: beta.jet.work
+    user: jet
+    port: 22
+    docker_compose_file_path: /var/www/docker-compose.yml
     private_key: ${{ secrets.DEPLOYMENT_KEY }}
-    image_name: ""
-    image_version: ""
+    service_name: "jet-example"
+    image: "registry.cn-hangzhou.aliyuncs.com/jet/jet-example:latest"
 ```
