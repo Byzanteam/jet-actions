@@ -1,0 +1,28 @@
+name: Upgraded by compose
+description: "Use docker compose to upgrade the remote host's services"
+inputs:
+  host:
+    description: ssh host
+    required: true
+  port:
+    description: ssh port, default is 22
+    required: false
+    default: 22
+  user:
+    description: ssh user
+    required: true
+  docker_compose_file_path:
+    description: upgrade docker compose file path directory
+    required: true
+  private_key:
+    description: content of ssh private key. ex raw content of ~/.ssh/id_rsa
+    required: true
+  service_name:
+    description: upgrade application serice name
+    required: true
+  image:
+    description: upgrade application image
+    required: true
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
