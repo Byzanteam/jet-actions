@@ -1,23 +1,24 @@
 name: 'FE Build Image'
 description: Build and push front-end image for deploy
 inputs:
+  registries:
+    description: "This parameter is a list of registries separated by a newline character. Each registry should be formatted as follows: ${hostname},${namespace},${username},${password}."
+    required: false
+    default: ghcr.io,byzanteam,${{ github.repository_owner }},${{ github.token }}
   context:
     description: "Build's context is the set of files located in the specified PATH or URL"
     required: false
     default: .
-  github_token:
-    description: The GITHUB_TOKEN
-    required: true
   dockerfile:
-    description: path to Dockerfile
+    description: Path to Dockerfile
     required: false
     default: ./deploy/Dockerfile
   build_args:
     description: List of build-time variables
     required: false
-  package_file:
-    description: The package.json file
-    default: package.json
+  cache_type:
+    description: "When using self hosted to builds the image, should set the cache storage directory. Only two values are supported: local and gha."
+    default: 'gha'
     required: false
 
 runs:
@@ -26,32 +27,92 @@ runs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v2
-      with:
-        registry: ghcr.io
-        username: ${{ github.repository_owner }}
-        password: ${{ inputs.github_token }}
+    - name: Set up Docker image name
+      id: image
+      shell: bash
+      run: |
+        echo "image_name=`basename ${{ github.repository }}`" >> $GITHUB_OUTPUT
 
-    - name: Get APP Info
-      uses: byzanteam/jet-actions/fe-get-app-info@main
-      with:
-        package_file: ${{ inputs.package_file }}
-      id: get-app-info
+    - name: Set up Docker registries info
+      id: registries
+      shell: bash
+      run: |
+        IMAGE_NAME=${{ steps.image.outputs.image_name }}
+        echo "images<<EOF" >> $GITHUB_OUTPUT
+        echo "${{ inputs.registries }}" | while read line; do
+          echo "$line" | awk -F',' "{print \$1\"/\"\$2\"/$IMAGE_NAME\"}" >> $GITHUB_OUTPUT
+        done
+        echo "EOF" >> $GITHUB_OUTPUT
 
-    - name: Build and push
+    - name: Login to the custom registries
+      shell: bash
+      run: |
+        echo "${{ inputs.registries }}" | while read line; do
+          REGISTRY=$(echo $line | awk -F',' '{print $1}')
+          USERNAME=$(echo $line | awk -F',' '{print $3}')
+          PASSWORD=$(echo $line | awk -F',' '{print $4}')
+          echo "$PASSWORD" | docker login -u $USERNAME --password-stdin $REGISTRY
+        done
+
+    - name: Docker meta
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: ${{ steps.registries.outputs.images }}
+        tags: |
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.0.') }}
+          type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
+          type=sha
+
+    - if: ${{ inputs.cache_type == 'gha' }}
+      name: Build and push
       uses: docker/build-push-action@v3
       with:
         context: ${{ inputs.context }}
         file: ${{ inputs.dockerfile }}
         build-args: |
-          APP_VSN=${{ steps.get-app-info.outputs.version }}
-          APP_NAME=${{ steps.get-app-info.outputs.name }}
+          APP_VSN=${{ steps.meta.outputs.version }}
+          APP_NAME=${{ steps.image.outputs.image_name }}
           SOURCE_REPO_URL=${{ github.repositoryUrl }}
           SOURCE_SHA=${{ github.sha }}
           ${{ inputs.build_args }}
         push: true
-        tags: |
-          ghcr.io/byzanteam/${{ steps.get-app-info.outputs.name }}:${{ steps.get-app-info.outputs.version }}
+        labels: ${{ steps.meta.outputs.labels }}
+        tags: ${{ steps.meta.outputs.tags }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+    - if: ${{ inputs.cache_type == 'local' }}
+      name: Build and push
+      uses: docker/build-push-action@v3
+      with:
+        context: ${{ inputs.context }}
+        file: ${{ inputs.dockerfile }}
+        build-args: |
+          APP_VSN=${{ steps.meta.outputs.version }}
+          APP_NAME=${{ steps.image.outputs.image_name }}
+          SOURCE_REPO_URL=${{ github.repositoryUrl }}
+          SOURCE_SHA=${{ github.sha }}
+          ${{ inputs.build_args }}
+        push: true
+        labels: ${{ steps.meta.outputs.labels }}
+        tags: ${{ steps.meta.outputs.tags }}
+        cache-from: type=local,src=/tmp/.buildx-cache-${{ steps.image.outputs.image_name }}
+        cache-to: type=local,dest=/tmp/.buildx-cache-${{ steps.image.outputs.image_name }}-new,mode=max
+
+    - if: ${{ inputs.cache_type == 'local' }}
+      name: Move cache
+      shell: bash
+      run: |
+        rm -rf /tmp/.buildx-cache-${{ steps.image.outputs.image_name }}
+        mv /tmp/.buildx-cache-${{ steps.image.outputs.image_name }}-new /tmp/.buildx-cache-${{ steps.image.outputs.image_name }}
+
+    - name: Logout the custom registries
+      shell: bash
+      run: |
+        echo "${{ inputs.registries }}" | while read line; do
+          REGISTRY=$(echo $line | awk -F',' '{print $1}')
+          docker logout $REGISTRY
+        done
