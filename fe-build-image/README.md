@@ -8,7 +8,7 @@ Build and push front-end image for deploy
   uses: byzanteam/jet-actions/fe-build-image@main
   with:
     registries: |-
-      registry,namespace,username,password
+      ${{ secrets.ALIYUN_SKYLARK_REGISTRY }}
       ghcr.io,byzanteam,${{ github.repository_owner }},${{ github.token }}
     context: .
     dockerfile: ./deploy/Dockerfile
@@ -16,15 +16,24 @@ Build and push front-end image for deploy
       SOME_CUSTOM_BUILD_ARG=xxx
     cache_type: local
 ```
-> **注**：定义 registries 变量时应该使用以下格式
+#### registries 参数格式
+`$registry,$namespace,$username,$password`(以 `,` 分割)
+
+
+每个 repo 提供两个 registry 相关的 [secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets) ：
+1. `${{ secrets.ALIYUN_SKYLARK_REGISTRY }}`：`skylark` 相关的项目使用
+2. `${{ secrets.ALIYUN_JET_REGISTRY }}`：`jet` 相关的项目使用
+
 ```yaml
 registries: |-
-  registry,namespace,username,password
   ghcr.io,byzanteam,${{ github.repository_owner }},${{ github.token }}
 ```
-> **注**: 当前支持的值 `local` 和 `gha`.
-> 使用 self hosted 时，必须指定 cache_type 为 local;
-> 使用 Github hosted 时可以不指定或指定 cache_type 为 gha
+#### cache_type 可选值
+1. 使用 self hosted 时，必须指定 `cache_type` 为 `local`
+2. 使用 Github hosted 时可以不指定或指定 `cache_type` 为 `gha`
 ```yaml
 cache_type: local
 ```
+
+#### 迁移样例
+https://github.com/Byzanteam/jet-autoflow-example/pull/2
