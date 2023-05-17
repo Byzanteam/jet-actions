@@ -3,8 +3,9 @@ description: "前端提交pull request 自动部署并反向代理"
 inputs:
   values_file:
     description: "local values yaml file"
-    required: true
-  app_name:
+    required: false
+    default: ./deploy/values.local.yaml 
+  release_name:
     description: "deploy application name"
     required: true
   image_tag:
@@ -18,7 +19,8 @@ inputs:
     required: true
   ssh_port:
     description: "ssh connect port"
-    required: true
+    required: false
+    default: 22
   ssh_key:
     description: "ssh connect  priviate key"
     required: true
@@ -26,12 +28,20 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: get-name
+      run: |
+        echo "REPO_NAME=$(basename ${{ github.repository }})" >> $GITHUB_ENV
+
     - name: Deploy front app
       shell: bash
       run: |
         echo ${{ inputs.ssh_key }} | base64 -d > private.key && chmod 600 private.key
+
         ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
           "helm repo add app-template https://Byzanteam.github.io/helm-charts"
+
+        scp -P ${{ inputs.port }} ${{ inputs.values_file }} ${{ inputs.user }}@${{ inputs.host }}:/tmp/${{ env.REPO_NAME }}.values.yaml
+
         ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
-          "helm upgrade --install ${{ inputs.app_name }} app-template/application-chart-template -f ${{ inputs.values_file }} --set image.tag=${{ inputs.image_tag }}"
+          "helm upgrade --install ${{ inputs.release_name }} app-template/application-chart-template -f /tmp/${{ env.REPO_NAME }}.values.yaml --set image.tag=${{ inputs.image_tag }}"
 
