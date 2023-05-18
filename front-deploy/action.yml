@@ -24,11 +24,15 @@ inputs:
   ssh_key:
     description: "ssh connect  priviate key"
     required: true
+  repository_password:
+    description: "Password for logging in to the repository"
+    required: true
 
 runs:
   using: 'composite'
   steps:
     - name: get-name
+      shell: bash
       run: |
         echo "REPO_NAME=$(basename ${{ github.repository }})" >> $GITHUB_ENV
 
@@ -43,5 +47,5 @@ runs:
         scp -P ${{ inputs.port }} ${{ inputs.values_file }} ${{ inputs.user }}@${{ inputs.host }}:/tmp/${{ env.REPO_NAME }}.values.yaml
 
         ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
-          "helm upgrade --install ${{ inputs.release_name }} app-template/application-chart-template -f /tmp/${{ env.REPO_NAME }}.values.yaml --set image.tag=${{ inputs.image_tag }}"
+          "helm upgrade --install ${{ inputs.release_name }} app-template/application-chart-template -f /tmp/${{ env.REPO_NAME }}.values.yaml --set image.tag=${{ inputs.image_tag }} --set imageCredentials.password=${{ inputs.repository_password }}"
 

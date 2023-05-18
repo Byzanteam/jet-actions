@@ -24,6 +24,7 @@ Traefik->>Developer: 显示视图
     ssh_user: Username
     ssh_port: 22
     ssh_key: ${{ secrets.SSH_KEY }}
+    repository_password: ${{ secrets.REPOSITORY_PASSWORD }}
 ```
 
 添加 secret 参数到 repo 中，`Settings->Secrets and variables->Actions->Repository secrets`:
