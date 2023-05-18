@@ -1,4 +1,4 @@
-name: front deploy
+name: Deploy Frontend Application
 description: "前端应用部署 actions, 通过 helm chart 在 kubernetes 集群中部署应用"
 inputs:
   values_file:
@@ -7,16 +7,18 @@ inputs:
     default: ./deploy/values.local.yaml 
   release_name:
     description: "deploy application name"
-    required: true
+    required: false
   image_tag:
     description: "deploy application tag"
     required: true
   host:
     description: "ssh connect host"
-    required: true
+    required: false
+    default: deploy.apps.jet.work
   user:
     description: "ssh connect user name"
-    required: true
+    required: false
+    default: github-deployer
   port:
     description: "ssh connect port"
     required: false
@@ -24,19 +26,17 @@ inputs:
   private_key:
     description: "ssh connect  priviate key"
     required: true
-  repository_password:
-    description: "Password for logging in to the repository"
-    required: true
 
 runs:
   using: 'composite'
   steps:
-    - name: get-name
+    - name: Get repo name
       shell: bash
       run: |
-        echo "REPO_NAME=$(basename ${{ github.repository }})" >> $GITHUB_ENV
+        REPO_NAME=$(basename ${{ github.repository }})
+        echo "RELEASE_NAME=$([ -n "${{ inputs.release_name }}" ] && echo "${{ inputs.release_name }}" || echo "$REPO_NAME")" >> $GITHUB_ENV
 
-    - name: Deploy front app
+    - name: Deploy Frontend Application
       shell: bash
       run: |
         echo ${{ inputs.private_key }} | base64 -d > private.key && chmod 600 private.key
@@ -44,8 +44,11 @@ runs:
         ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
           "helm repo add --force-update app-template https://Byzanteam.github.io/helm-charts"
 
-        scp -i private.key -o "StrictHostKeyChecking=no" -P ${{ inputs.port }} ${{ inputs.values_file }} ${{ inputs.user }}@${{ inputs.host }}:/tmp/${{ env.REPO_NAME }}.values.yaml
+        scp -i private.key -o "StrictHostKeyChecking=no" -P ${{ inputs.port }} ${{ inputs.values_file }} ${{ inputs.user }}@${{ inputs.host }}:/tmp/${{ env.RELEASE_NAME }}.values.yaml
 
         ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
-          "helm upgrade --install ${{ inputs.release_name }} app-template/application-chart-template -f /tmp/${{ env.REPO_NAME }}.values.yaml --set image.tag=${{ inputs.image_tag }} --set imageCredentials.password=${{ inputs.repository_password }}"
+          "helm upgrade --install ${{ env.RELEASE_NAME }} \
+            -f /tmp/${{ env.RELEASE_NAME }}.values.yaml \
+            --set image.tag=${{ inputs.image_tag }} \
+            app-template/application-chart-template"
 
