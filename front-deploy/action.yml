@@ -1,5 +1,5 @@
-ame: front pr preview deploy
-description: "前端提交pull request 自动部署并反向代理"
+name: front deploy
+description: "前端应用部署 actions, 通过 helm chart 在 kubernetes 集群中部署应用"
 inputs:
   values_file:
     description: "local values yaml file"
@@ -11,17 +11,17 @@ inputs:
   image_tag:
     description: "deploy application tag"
     required: true
-  ssh_host:
+  host:
     description: "ssh connect host"
     required: true
-  ssh_user:
+  user:
     description: "ssh connect user name"
     required: true
-  ssh_port:
+  port:
     description: "ssh connect port"
     required: false
     default: 22
-  ssh_key:
+  private_key:
     description: "ssh connect  priviate key"
     required: true
   repository_password:
@@ -39,12 +39,12 @@ runs:
     - name: Deploy front app
       shell: bash
       run: |
-        echo ${{ inputs.ssh_key }} | base64 -d > private.key && chmod 600 private.key
+        echo ${{ inputs.private_key }} | base64 -d > private.key && chmod 600 private.key
 
         ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
-          "helm repo add app-template https://Byzanteam.github.io/helm-charts"
+          "helm repo add --force-update app-template https://Byzanteam.github.io/helm-charts"
 
-        scp -P ${{ inputs.port }} ${{ inputs.values_file }} ${{ inputs.user }}@${{ inputs.host }}:/tmp/${{ env.REPO_NAME }}.values.yaml
+        scp -i private.key -o "StrictHostKeyChecking=no" -P ${{ inputs.port }} ${{ inputs.values_file }} ${{ inputs.user }}@${{ inputs.host }}:/tmp/${{ env.REPO_NAME }}.values.yaml
 
         ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
           "helm upgrade --install ${{ inputs.release_name }} app-template/application-chart-template -f /tmp/${{ env.REPO_NAME }}.values.yaml --set image.tag=${{ inputs.image_tag }} --set imageCredentials.password=${{ inputs.repository_password }}"
