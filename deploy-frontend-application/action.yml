@@ -1,5 +1,5 @@
 name: Deploy Frontend Application
-description: "前端应用部署 actions, 通过 helm chart 在 kubernetes 集群中部署应用"
+description: "Deploy a frontend application in the k8s cluster via helm."
 inputs:
   values_file:
     description: "local values yaml file"
@@ -26,6 +26,14 @@ inputs:
   private_key:
     description: "ssh connect  priviate key"
     required: true
+  namespace:
+    description: "Kubernetes cluster namespace, supports two values: production and test"
+    required: false
+    default: test
+outputs:
+  public_url:
+    description: "The public URL for a frontend application deployed on a Kubernetes cluster"
+    value: ${{ steps.domain_name.outputs.domain_name }}
 
 runs:
   using: 'composite'
@@ -36,7 +44,7 @@ runs:
         REPO_NAME=$(basename ${{ github.repository }})
         echo "RELEASE_NAME=$([ -n "${{ inputs.release_name }}" ] && echo "${{ inputs.release_name }}" || echo "$REPO_NAME")" >> $GITHUB_ENV
 
-    - name: Deploy Frontend Application
+    - name: Deploy the frontend application
       shell: bash
       run: |
         echo ${{ inputs.private_key }} | base64 -d > private.key && chmod 600 private.key
@@ -50,5 +58,16 @@ runs:
           "helm upgrade --install ${{ env.RELEASE_NAME }} \
             -f /tmp/${{ env.RELEASE_NAME }}.values.yaml \
             --set image.tag=${{ inputs.image_tag }} \
+            --namespace ${{ inputs.namespace }} --create-namespace \
             app-template/application-chart-template"
+
+    - name: The public URL for a frontend application deployed on a Kubernetes cluster.
+      id: public_url
+      shell: bash
+      run: |
+        echo "public_url<<EOF" >> $GITHUB_OUTPUT
+        echo "$(yq '.applicationHosts' ${{ inputs.values_file }})" | while read line; do
+          echo $line | awk '{print $2}' >> $GITHUB_OUTPUT
+        done
+        echo "EOF" >> $GITHUB_OUTPUT
 
