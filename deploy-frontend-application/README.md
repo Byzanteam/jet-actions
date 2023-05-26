@@ -6,14 +6,13 @@ Deploy the front application to a Kubernetes cluster using a Helm Chart
 | Key                 | Required| Default                    | Example                                                 |
 | ------------------- | ------- | -------------------------- | ------------------------------------------------------- |
 | values_file         | false   | ./deploy/values.local.yaml | ./deploy/values.local.yaml                              |
-| release_name        | false   | "This repo name"           | frontend-app                                            |
+| release_name        | false   | `$(basename ${{ github.repository }})`           | frontend-app                                            |
 | image_tag           | true    |                            | 1.0.0                                                   |
 | host                | false   | deploy.apps.jet.work       | 10.0.0.1                                                |
 | user                | false   | github-deployer            | root                                                    |
 | port                | false   | 22                         | 22                                                      |
 | private_key         | true    |                            | ${{ secrets.SSH_KEY }}                                  |
 | namespace           | true    |                            | test                                                    |
-> The "" in the default column indicates an explanation
 
 ### Outputs
 `public_url` - The public URL for a frontend application deployed on a Kubernetes cluster

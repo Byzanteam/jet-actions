@@ -44,31 +44,31 @@ runs:
         echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
         echo "RELEASE_NAME=$([ -n "${{ inputs.release_name }}" ] && echo "${{ inputs.release_name }}" || echo "$REPO_NAME")" >> $GITHUB_ENV
 
+    - name: Verify that the namespace value is production or test
+      shell: bash
+      run: |
+        case ${{ inputs.namespace }} in
+          production)
+          echo "NAMESPACE=production" >> $GITHUB_ENV
+          ;;
+          test)
+          echo "NAMESPACE=test" >> $GITHUB_ENV
+          ;;
+          *)
+          echo "ERROR: The namespace value only supports production and test!"
+          exit 1
+          ;;
+        esac
+          
+
     - name: Deploy the frontend application
       shell: bash
       run: |
         echo ${{ inputs.private_key }} | base64 -d > private.key && chmod 600 private.key
 
-        ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
-          "helm repo add --force-update app-template https://Byzanteam.github.io/helm-charts"
-
-        # Constraints namespace values to production and test
-        case ${{ inputs.namespace }} in
-          production)
-          cat ${{ inputs.values_file }} <<-END | ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
-            "helm upgrade --install ${{ env.REPO_NAME }}-${{ env.RELEASE_NAME }} -f - --set image.tag=${{ inputs.image_tag }} --namespace production app-template/application-chart-template"
+        cat ${{ inputs.values_file }} <<-END | ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
+          "helm upgrade --install ${{ env.REPO_NAME }}-${{ env.RELEASE_NAME }} -f - --set image.tag=${{ inputs.image_tag }} --namespace ${{env.NAMESPACE }} app-template/application-chart-template"
         END
-          ;;
-          test)
-          cat ${{ inputs.values_file }} <<-END | ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
-            "helm upgrade --install ${{ env.REPO_NAME }}-${{ env.RELEASE_NAME }} -f - --set image.tag=${{ inputs.image_tag }} --namespace test app-template/application-chart-template"
-        END
-          ;;
-          *)
-          echo "error namespace"
-          exit 1
-          ;;
-        esac
 
     - name: The public URL for a frontend application deployed on a Kubernetes cluster.
       id: get-public-url
