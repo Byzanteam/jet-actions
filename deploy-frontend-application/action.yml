@@ -2,14 +2,14 @@ name: Deploy Frontend Application
 description: "Deploy a frontend application in the k8s cluster via helm."
 inputs:
   values_file:
-    description: "local values yaml file"
+    description: "Local values yaml file"
     required: false
     default: ./deploy/values.local.yaml 
   release_name:
-    description: "deploy application name"
+    description: "The release name of the application to be deployed, default value is this repo name"
     required: false
   image_tag:
-    description: "deploy application tag"
+    description: "The image tag of the application to be deployed"
     required: true
   host:
     description: "ssh connect host"
@@ -24,24 +24,24 @@ inputs:
     required: false
     default: 22
   private_key:
-    description: "ssh connect  priviate key"
+    description: "ssh connect private key"
     required: true
   namespace:
     description: "Kubernetes cluster namespace, supports two values: production and test"
-    required: false
-    default: test
+    required: true
 outputs:
   public_url:
     description: "The public URL for a frontend application deployed on a Kubernetes cluster"
-    value: ${{ steps.domain_name.outputs.domain_name }}
+    value: ${{ steps.get-public-url.outputs.public_url }}
 
 runs:
   using: 'composite'
   steps:
-    - name: Get repo name
+    - name: Get repo name and set release name
       shell: bash
       run: |
         REPO_NAME=$(basename ${{ github.repository }})
+        echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
         echo "RELEASE_NAME=$([ -n "${{ inputs.release_name }}" ] && echo "${{ inputs.release_name }}" || echo "$REPO_NAME")" >> $GITHUB_ENV
 
     - name: Deploy the frontend application
@@ -52,17 +52,26 @@ runs:
         ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
           "helm repo add --force-update app-template https://Byzanteam.github.io/helm-charts"
 
-        scp -i private.key -o "StrictHostKeyChecking=no" -P ${{ inputs.port }} ${{ inputs.values_file }} ${{ inputs.user }}@${{ inputs.host }}:/tmp/${{ env.RELEASE_NAME }}.values.yaml
-
-        ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
-          "helm upgrade --install ${{ env.RELEASE_NAME }} \
-            -f /tmp/${{ env.RELEASE_NAME }}.values.yaml \
-            --set image.tag=${{ inputs.image_tag }} \
-            --namespace ${{ inputs.namespace }} --create-namespace \
-            app-template/application-chart-template"
+        # Constraints namespace values to production and test
+        case ${{ inputs.namespace }} in
+          production)
+          cat ${{ inputs.values_file }} <<-END | ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
+            "helm upgrade --install ${{ env.REPO_NAME }}-${{ env.RELEASE_NAME }} -f - --set image.tag=${{ inputs.image_tag }} --namespace production app-template/application-chart-template"
+        END
+          ;;
+          test)
+          cat ${{ inputs.values_file }} <<-END | ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
+            "helm upgrade --install ${{ env.REPO_NAME }}-${{ env.RELEASE_NAME }} -f - --set image.tag=${{ inputs.image_tag }} --namespace test app-template/application-chart-template"
+        END
+          ;;
+          *)
+          echo "error namespace"
+          exit 1
+          ;;
+        esac
 
     - name: The public URL for a frontend application deployed on a Kubernetes cluster.
-      id: public_url
+      id: get-public-url
       shell: bash
       run: |
         echo "public_url<<EOF" >> $GITHUB_OUTPUT
