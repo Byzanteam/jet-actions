@@ -1,0 +1,82 @@
+name: Deploy Frontend Application
+description: "Deploy a frontend application in the k8s cluster via helm."
+inputs:
+  values_file:
+    description: "Local values yaml file"
+    required: false
+    default: ./deploy/values.local.yaml 
+  release_name:
+    description: "The release name of the application to be deployed, default value is this repo name"
+    required: false
+  image_tag:
+    description: "The image tag of the application to be deployed"
+    required: true
+  host:
+    description: "ssh connect host"
+    required: false
+    default: deploy.apps.jet.work
+  user:
+    description: "ssh connect user name"
+    required: false
+    default: github-deployer
+  port:
+    description: "ssh connect port"
+    required: false
+    default: 22
+  private_key:
+    description: "ssh connect private key"
+    required: true
+  namespace:
+    description: "Kubernetes cluster namespace, supports two values: production and test"
+    required: true
+outputs:
+  public_url:
+    description: "The public URL for a frontend application deployed on a Kubernetes cluster"
+    value: ${{ steps.get-public-url.outputs.public_url }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Get repo name and set release name
+      shell: bash
+      run: |
+        REPO_NAME=$(basename ${{ github.repository }})
+        echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
+        echo "RELEASE_NAME=$([ -n "${{ inputs.release_name }}" ] && echo "${{ inputs.release_name }}" || echo "$REPO_NAME")" >> $GITHUB_ENV
+
+    - name: Verify that the namespace value is production or test
+      shell: bash
+      run: |
+        case ${{ inputs.namespace }} in
+          production)
+          echo "NAMESPACE=production" >> $GITHUB_ENV
+          ;;
+          test)
+          echo "NAMESPACE=test" >> $GITHUB_ENV
+          ;;
+          *)
+          echo "ERROR: The namespace value only supports production and test!"
+          exit 1
+          ;;
+        esac
+          
+
+    - name: Deploy the frontend application
+      shell: bash
+      run: |
+        echo ${{ inputs.private_key }} | base64 -d > private.key && chmod 600 private.key
+
+        cat ${{ inputs.values_file }} <<-END | ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
+          "helm upgrade --install ${{ env.REPO_NAME }}-${{ env.RELEASE_NAME }} -f - --set image.tag=${{ inputs.image_tag }} --namespace ${{env.NAMESPACE }} app-template/application-chart-template"
+        END
+
+    - name: The public URL for a frontend application deployed on a Kubernetes cluster.
+      id: get-public-url
+      shell: bash
+      run: |
+        echo "public_url<<EOF" >> $GITHUB_OUTPUT
+        echo "$(yq '.applicationHosts' ${{ inputs.values_file }})" | while read line; do
+          echo $line | awk '{print $2}' >> $GITHUB_OUTPUT
+        done
+        echo "EOF" >> $GITHUB_OUTPUT
+
