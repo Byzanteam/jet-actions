@@ -15,6 +15,7 @@ Build and push front-end image for deploy
     build-args: |
       SOME_CUSTOM_BUILD_ARG=xxx
     cache_type: local
+    image_name: my_image
 ```
 #### registries 参数格式
 `$registry,$namespace,$username,$password`(以 `,` 分割)

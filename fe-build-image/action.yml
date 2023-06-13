@@ -20,6 +20,9 @@ inputs:
     description: "When using self hosted to builds the image, should set the cache storage directory. Only two values are supported: local and gha."
     default: 'gha'
     required: false
+  image_name:
+    description: Set an image name, or derive it from the repo name by default
+    required: false
 
 runs:
   using: 'composite'
@@ -31,7 +34,8 @@ runs:
       id: image
       shell: bash
       run: |
-        echo "image_name=`basename ${{ github.repository }}`" >> $GITHUB_OUTPUT
+        REPO_NAME=$(basename ${{ github.repository }})
+        echo "image_name=$([-n "${{ inputs.image_name }}" ] && echo "${{ inputs.image_name }}" || echo "$REPO_NAME")" >> $GITHUB_OUTPUT
 
     - name: Set up Docker registries info
       id: registries
