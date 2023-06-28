@@ -35,7 +35,7 @@ runs:
       shell: bash
       run: |
         REPO_NAME=$(basename ${{ github.repository }})
-        echo "image_name=$([-n "${{ inputs.image_name }}" ] && echo "${{ inputs.image_name }}" || echo "$REPO_NAME")" >> $GITHUB_OUTPUT
+        echo "image_name=$([ -n "${{ inputs.image_name }}" ] && echo "${{ inputs.image_name }}" || echo "$REPO_NAME")" >> $GITHUB_OUTPUT
 
     - name: Set up Docker registries info
       id: registries
