@@ -64,7 +64,7 @@ runs:
     - name: Deploy the frontend application
       shell: bash
       run: |
-        echo ${{ inputs.private_key }} | base64 -d > private.key && chmod 600 private.key
+        echo ${{ inputs.private_key }} > private.key && chmod 600 private.key
 
         cat ${{ inputs.values_file }} <<-END | ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
           "helm upgrade --install ${{ env.REPO_NAME }}-${{ env.RELEASE_NAME }} -f - --set image.tag=${{ inputs.image_tag }} --namespace ${{env.NAMESPACE }} app-template/application-chart-template"
