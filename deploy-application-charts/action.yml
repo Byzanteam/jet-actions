@@ -1,5 +1,5 @@
-name: Deploy Frontend Application
-description: "Deploy a frontend application in the k8s cluster via helm."
+name: Deploy Application Charts
+description: "Deploy a application in the k8s cluster via helm."
 inputs:
   values_file:
     description: "Local values yaml file"
@@ -31,7 +31,7 @@ inputs:
     required: true
 outputs:
   public_url:
-    description: "The public URL for a frontend application deployed on a Kubernetes cluster"
+    description: "The public URL for a application deployed on a Kubernetes cluster"
     value: ${{ steps.get-public-url.outputs.public_url }}
 
 runs:
@@ -61,7 +61,7 @@ runs:
         esac
           
 
-    - name: Deploy the frontend application
+    - name: Deploy the application
       shell: bash
       run: |
         echo "${{ inputs.private_key }}" > private.key && chmod 600 private.key
@@ -70,7 +70,7 @@ runs:
           "helm upgrade --install ${{ env.REPO_NAME }}-${{ env.RELEASE_NAME }} -f - --set image.tag=${{ inputs.image_tag }} --namespace ${{env.NAMESPACE }} app-template/application-chart-template"
         END
 
-    - name: The public URL for a frontend application deployed on a Kubernetes cluster.
+    - name: The public URL for a application deployed on a Kubernetes cluster.
       id: get-public-url
       shell: bash
       run: |
