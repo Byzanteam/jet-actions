@@ -1,0 +1,13 @@
+name: 'Registry Login'
+description: 'GitHub Action to login image registry'
+author: 'Byzanteam'
+
+inputs:
+  registry-info:
+    description: 'Image registry info. Include registry server address, namespace, username and password.'
+    required: true
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+  post: 'dist/index.js'
