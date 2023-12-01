@@ -19,3 +19,8 @@ export function getInputs(): Inputs {
   };
 }
 
+export function setOutputs() {
+	const inputs: Inputs = getInputs();
+	core.setOutput("registry-hostname", inputs.registryHostname);
+	core.setOutput("registry-namespace", inputs.registryNamespace);
+}

@@ -6,6 +6,11 @@ inputs:
   registry-info:
     description: 'Image registry info. Include registry server address, namespace, username and password.'
     required: true
+outputs:
+  registry-hostname:
+    description: 'Image registry hostname.'
+  registry-namespace:
+    description: 'Image registry namespace.'
 
 runs:
   using: 'node20'
