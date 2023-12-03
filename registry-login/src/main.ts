@@ -1,7 +1,7 @@
-import * as actionsToolkit from "@docker/actions-toolkit";
+import * as actionsToolkit from 'https://esm.sh/@docker/actions-toolkit';
 
-import * as context from './context';
-import * as docker from './docker';
+import * as context from './context.ts';
+import * as docker from './docker.ts';
 
 const inputs: context.Inputs = context.getInputs();
 

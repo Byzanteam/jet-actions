@@ -1,5 +1,5 @@
-import * as core from '@actions/core';
-import {Exec} from '@docker/actions-toolkit/lib/exec';
+import * as core from 'https://esm.sh/@actions/core';
+import {Exec} from 'https://esm.sh/@docker/actions-toolkit/lib/exec';
 
 export async function login(registry: string, username: string, password: string): Promise<void> {
 	if (!username || !password) {
@@ -32,3 +32,4 @@ export async function logout(registry: string): Promise<void> {
     }
   });
 }
+

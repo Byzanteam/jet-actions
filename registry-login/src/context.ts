@@ -1,4 +1,4 @@
-import * as core from '@actions/core';
+import * as core from 'https://esm.sh/@actions/core';
 
 export interface Inputs {
   registryHostname: string;

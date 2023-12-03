@@ -13,6 +13,7 @@ outputs:
     description: 'Image registry namespace.'
 
 runs:
-  using: 'node20'
-  main: 'dist/index.js'
-  post: 'dist/index.js'
+  using: 'docker'
+  image: 'hayd/deno-lambda'
+  with:
+    entrypoint: 'src/main.ts'
