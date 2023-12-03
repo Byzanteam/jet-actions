@@ -14,5 +14,5 @@ outputs:
 
 runs:
   using: 'docker'
-  image: 'hayd/deno-lambda'
+  image: 'docker://denoland/deno:alpine-1.38.4'
   entrypoint: 'src/main.ts'
