@@ -14,5 +14,6 @@ outputs:
 
 runs:
   using: 'docker'
-  image: 'docker://denoland/deno:alpine-1.38.4'
-  entrypoint: 'src/main.ts'
+  image: 'Dockerfile'
+  entrypoint: 'deno run main.ts'
+  post-entrypoint: 'deno run post.ts'

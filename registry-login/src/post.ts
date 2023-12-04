@@ -5,9 +5,8 @@ import * as docker from './docker.ts';
 
 const inputs: context.Inputs = context.getInputs();
 
-export async function main(): Promise<void> {
-	context.setOutputs();
-	await docker.login(inputs.registryHostname, inputs.username, inputs.password);
+async function post(): Promise<void> {
+	await docker.logout(inputs.registryHostname);
 }
 
-actionsToolkit.run(main);
+actionsToolkit.run(post);
