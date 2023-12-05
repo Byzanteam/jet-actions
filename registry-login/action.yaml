@@ -15,5 +15,5 @@ outputs:
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  entrypoint: '/usr/bin/deno run main.ts'
-  post-entrypoint: '/usr/bin/deno run post.ts'
+  entrypoint: '/app/main.sh'
+  post-entrypoint: '/app/cleanup.sh'
