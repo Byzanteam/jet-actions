@@ -1,3 +1,3 @@
 #!/bin/sh
 
-/usr/bin/deno run /app/post.ts
+/bin/deno run /app/post.ts
