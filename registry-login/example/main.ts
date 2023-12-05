@@ -10,7 +10,7 @@ export interface Inputs {
 }
 
 export function getInputs(): Inputs {
-  const registryInfo = core.getState('registry-info');
+  const registryInfo = Deno.env.get('registry-info');
   const [registryHostname, registryNamespace, username, password] = registryInfo.split(" ");
 
   return {
@@ -19,12 +19,6 @@ export function getInputs(): Inputs {
     username,
     password
   };
-}
-
-export function setOutputs() {
-	const inputs: Inputs = getInputs();
-	core.setOutput("registry-hostname", inputs.registryHostname);
-	core.setOutput("registry-namespace", inputs.registryNamespace);
 }
 
 export async function login(registry: string, username: string, password: string): Promise<void> {
@@ -49,6 +43,11 @@ export async function login(registry: string, username: string, password: string
 	});
 }
 const inputs: Inputs = getInputs();
+
+export function setOutputs() {
+	core.setOutput("registry-hostname", inputs.registryHostname);
+	core.setOutput("registry-namespace", inputs.registryNamespace);
+}
 
 export async function main(): Promise<void> {
 	setOutputs();
