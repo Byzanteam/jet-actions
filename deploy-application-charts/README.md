@@ -13,6 +13,7 @@ Deploy the application to a Kubernetes cluster using a Helm Chart
 | port                | false   | 22                         | 22                                                      |
 | private_key         | true    |                            | ${{ secrets.SSH_KEY }}                                  |
 | namespace           | true    |                            | test                                                    |
+| chart_name          | false   | application-chart-template | application-chart-template                              |
 
 ### Outputs
 `public_url` - The public URL for a application deployed on a Kubernetes cluster
