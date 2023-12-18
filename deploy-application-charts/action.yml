@@ -29,6 +29,10 @@ inputs:
   namespace:
     description: "Kubernetes cluster namespace, supports two values: production and test"
     required: true
+  chart_name:
+    description: "It is the name of your chart"
+    required: false
+    default: "application-chart-template"
 outputs:
   public_url:
     description: "The public URL for a application deployed on a Kubernetes cluster"
@@ -67,7 +71,7 @@ runs:
         echo "${{ inputs.private_key }}" > private.key && chmod 600 private.key
 
         cat ${{ inputs.values_file }} <<-END | ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
-          "helm upgrade --install ${{ env.REPO_NAME }}-${{ env.RELEASE_NAME }} -f - --set image.tag=${{ inputs.image_tag }} --namespace ${{env.NAMESPACE }} app-template/application-chart-template"
+          "helm upgrade --install ${{ env.REPO_NAME }}-${{ env.RELEASE_NAME }} -f - --set image.tag=${{ inputs.image_tag }} --namespace ${{env.NAMESPACE }} app-template/${{ inputs.chart_name }}"
         END
 
     - name: The public URL for a application deployed on a Kubernetes cluster.
@@ -75,7 +79,7 @@ runs:
       shell: bash
       run: |
         echo "public_url<<EOF" >> $GITHUB_OUTPUT
-        echo "$(yq '.applicationHosts' ${{ inputs.values_file }})" | while read line; do
+        echo "$(yq '.applicationHosts' ${{ inputs.values_file }} || yq '.hosts' ${{ inputs.values_file }})" | while read line; do
           echo $line | awk '{print $2}' >> $GITHUB_OUTPUT
         done
         echo "EOF" >> $GITHUB_OUTPUT
