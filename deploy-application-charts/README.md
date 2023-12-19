@@ -32,4 +32,4 @@ Deploy the application to a Kubernetes cluster using a Helm Chart
 * `namespace` supports two values: `production` and `test`. 
   * The `production` namespace corresponds to the production environment. Such as the formal provision of external services.
   * The `test` namespace corresponds to the test environment. Such as pr preview, testing new features.
-
+* repo address: https://github.com/Byzanteam/helm-charts
