@@ -13,7 +13,11 @@ outputs:
     description: 'Image registry namespace.'
 
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
-  entrypoint: '/app/main.sh'
-  post-entrypoint: '/app/cleanup.sh'
+  using: "composite"
+  steps:
+    - uses: denoland/setup-deno@v1
+      with:
+        deno-version: v1.x
+
+    - shell: bash
+      run: ./src/main.ts
