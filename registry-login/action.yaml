@@ -20,4 +20,6 @@ runs:
         deno-version: v1.x
 
     - shell: bash
+      env:
+        registry-info: ${{ inputs.registry-info }}
       run: deno run -A https://raw.githubusercontent.com/Byzanteam/jet-actions/feat/yangke/operate-login-info/registry-login/src/main.ts
