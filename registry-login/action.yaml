@@ -20,4 +20,4 @@ runs:
         deno-version: v1.x
 
     - shell: bash
-      run: ./src/main.ts
+      run: https://github.com/Byzanteam/jet-actions/blob/feat/yangke/operate-login-info/registry-login/src/main.ts
