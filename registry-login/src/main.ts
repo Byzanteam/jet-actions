@@ -1,5 +1,3 @@
-#!/usr/bin/env -S deno run -A
-
 import * as core from 'https://esm.sh/@actions/core';
 import * as actionsToolkit from 'https://esm.sh/@docker/actions-toolkit';
 import {Exec} from 'https://esm.sh/@docker/actions-toolkit/lib/exec';
