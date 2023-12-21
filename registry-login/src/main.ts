@@ -12,7 +12,7 @@ export interface Inputs {
 }
 
 export function getInputs(): Inputs {
-  const registryInfo = Deno.env.get('registry-info');
+  const registryInfo = core.getInput('registry-info');
   const [registryHostname, registryNamespace, username, password] = registryInfo.split(" ");
 
   return {
