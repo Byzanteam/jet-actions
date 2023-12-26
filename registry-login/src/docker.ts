@@ -6,10 +6,6 @@ export async function login(
   username: string,
   password: string
 ): Promise<void> {
-  if (!username || !password) {
-    throw new Error('Username and password required')
-  }
-
   const loginArgs: Array<string> = ['login', '--password-stdin']
   loginArgs.push('--username', username)
   loginArgs.push(registry)
