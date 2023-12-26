@@ -4,7 +4,7 @@ author: 'Byzanteam'
 
 inputs:
   registry-info:
-    description: 'Image registry info. Include registry server address, namespace, username and password.'
+    description: "Image registry info. Each registry should be formatted as follows: ${hostname},${namespace},${username},${password}."
     required: true
 outputs:
   registry-hostname:
