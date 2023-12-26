@@ -7,16 +7,30 @@ export interface Inputs {
   password: string
 }
 
+let inputs: Inputs | undefined
+
 export function getInputs(): Inputs {
+  if (inputs) return inputs
+
   const registryInfo = core.getInput('registry-info')
   const [registryHostname, registryNamespace, username, password] =
     registryInfo.split(' ')
 
-  return {
+  inputs = {
     registryHostname,
     registryNamespace,
     username,
     password
+  }
+
+  if (!inputs.username || !inputs.password) {
+    throw new Error('Username and password required')
+  } else if (!inputs.registryHostname) {
+    throw new Error('Registry hostname required')
+  } else if (!inputs.registryNamespace) {
+    throw new Error('Registry namespace required')
+  } else {
+    return inputs
   }
 }
 
