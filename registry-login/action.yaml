@@ -4,12 +4,12 @@ author: 'Byzanteam'
 
 inputs:
   registry-info:
-    description: "Image registry info. Each registry should be formatted as follows: ${hostname},${namespace},${username},${password}."
+    description: "Image registry info. Each registry should be formatted as follows: `${hostname},${namespace},${username},${password}`."
     required: true
 outputs:
-  registry-hostname:
+  hostname:
     description: 'Image registry hostname.'
-  registry-namespace:
+  ns:
     description: 'Image registry namespace.'
 
 runs:

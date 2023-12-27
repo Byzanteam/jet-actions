@@ -6,8 +6,8 @@
 | registry-info       | true    |                            | ${{ secrets.ALIYUN_SKYLARK_REGISTRY }}                  |
 
 ### Outputs
-  `registry-hostname` - The image registry hostname.
-  `registry-namespace` - The image registry namespace.
+  `hostname` - The image registry hostname.
+  `ns` - The image registry namespace.
 
 ### Example
 ```yaml

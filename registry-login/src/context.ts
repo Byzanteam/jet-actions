@@ -1,8 +1,8 @@
 import * as core from '@actions/core'
 
 export interface Inputs {
-  registryHostname: string
-  registryNamespace: string
+  hostname: string
+  ns: string
   username: string
   password: string
 }
@@ -13,29 +13,28 @@ export function getInputs(): Inputs {
   if (inputs) return inputs
 
   const registryInfo = core.getInput('registry-info')
-  const [registryHostname, registryNamespace, username, password] =
-    registryInfo.split(',')
+  const [hostname, ns, username, password] = registryInfo.split(',')
 
   inputs = {
-    registryHostname,
-    registryNamespace,
+    hostname,
+    ns,
     username,
     password
   }
 
   if (!inputs.username || !inputs.password) {
     throw new Error('Username and password required')
-  } else if (!inputs.registryHostname) {
+  } else if (!inputs.hostname) {
     throw new Error('Registry hostname required')
-  } else if (!inputs.registryNamespace) {
-    throw new Error('Registry namespace required')
+  } else if (!inputs.ns) {
+    throw new Error('Registry ns required')
   } else {
     return inputs
   }
 }
 
 export function setOutputs() {
-  const inputs: Inputs = getInputs()
-  core.setOutput('registry-hostname', inputs.registryHostname)
-  core.setOutput('registry-namespace', inputs.registryNamespace)
+  const {hostname, ns} = getInputs()
+  core.setOutput('hostname', hostname)
+  core.setOutput('ns', ns)
 }
