@@ -14,7 +14,7 @@ export function getInputs(): Inputs {
 
   const registryInfo = core.getInput('registry-info')
   const [registryHostname, registryNamespace, username, password] =
-    registryInfo.split(' ')
+    registryInfo.split(',')
 
   inputs = {
     registryHostname,
