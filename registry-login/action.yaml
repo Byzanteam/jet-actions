@@ -9,7 +9,7 @@ inputs:
 outputs:
   hostname:
     description: 'Image registry hostname.'
-  ns:
+  namespace:
     description: 'Image registry namespace.'
 
 runs:

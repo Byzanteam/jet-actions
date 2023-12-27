@@ -36,5 +36,5 @@ export function getInputs(): Inputs {
 export function setOutputs() {
   const {hostname, ns} = getInputs()
   core.setOutput('hostname', hostname)
-  core.setOutput('ns', ns)
+  core.setOutput('namespace', ns)
 }

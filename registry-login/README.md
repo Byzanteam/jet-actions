@@ -7,7 +7,7 @@
 
 ### Outputs
   `hostname` - The image registry hostname.
-  `ns` - The image registry namespace.
+  `namespace` - The image registry namespace.
 
 ### Example
 ```yaml
