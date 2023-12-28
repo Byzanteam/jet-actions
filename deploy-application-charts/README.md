@@ -7,6 +7,7 @@ Deploy the application to a Kubernetes cluster using a Helm Chart
 | ------------------- | ------- | -------------------------- | ------------------------------------------------------- |
 | values_file         | false   | ./deploy/values.local.yaml | ./deploy/values.local.yaml                              |
 | release_name        | false   | `$(basename ${{ github.repository }})`           | application                                            |
+| image_tag_key_path  | false   | image.tag                  | image.tag                                               |
 | image_tag           | true    |                            | 1.0.0                                                   |
 | host                | false   | deploy.apps.jet.work       | 10.0.0.1                                                |
 | user                | false   | github-deployer            | root                                                    |

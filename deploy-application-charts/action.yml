@@ -8,6 +8,10 @@ inputs:
   release_name:
     description: "The release name of the application to be deployed, default value is this repo name"
     required: false
+  image_tag_key_path:
+    description: "The image tag yaml key path"
+    required: false
+    default: "image.tag"
   image_tag:
     description: "The image tag of the application to be deployed"
     required: true
@@ -71,7 +75,7 @@ runs:
         echo "${{ inputs.private_key }}" > private.key && chmod 600 private.key
 
         cat ${{ inputs.values_file }} <<-END | ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
-          "helm upgrade --install ${{ env.REPO_NAME }}-${{ env.RELEASE_NAME }} -f - --set image.tag=${{ inputs.image_tag }} --namespace ${{env.NAMESPACE }} app-template/${{ inputs.chart_name }}"
+          "helm upgrade --install ${{ env.REPO_NAME }}-${{ env.RELEASE_NAME }} -f - --set ${{ inputs.image_tag_key_path }}=${{ inputs.image_tag }} --namespace ${{env.NAMESPACE }} app-template/${{ inputs.chart_name }}"
         END
 
     - name: The public URL for a application deployed on a Kubernetes cluster.
