@@ -1,0 +1,43 @@
+name: Denoified Actions CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'denoified-actions/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'denoified-actions/**'
+
+defaults:
+  run:
+    working-directory: denoified-actions
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: "v1.x"
+
+      - name: Verify formatting
+        run: deno fmt --check
+
+      - name: Run linter
+        run: deno lint
+
+      - name: Type check project
+        run: deno task check:types
+
+      - name: Run tests
+        run: deno task test
