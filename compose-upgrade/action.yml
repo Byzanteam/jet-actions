@@ -18,7 +18,7 @@ inputs:
     description: content of ssh private key. ex raw content of ~/.ssh/id_rsa
     required: true
   service_name:
-    description: upgrade application serice name
+    description: upgrade application service name
     required: true
   image:
     description: upgrade application image
