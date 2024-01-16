@@ -1,0 +1,99 @@
+name: Pr preview
+description: "Build the image and deploy the pr code for preview"
+inputs:
+  ali-registry-info:
+    description: "Ali container registry infomation"
+    required: true
+  gh-registry-info:
+    description: "Ali container registry infomation"
+    required: true
+  release:
+    description: "Release name of the deployment preview"
+    required: true
+  values_file:
+    description: "Local values yaml file"
+    required: false
+    default: ./deploy/values.local.yaml 
+  image_tag_key_path:
+    description: "The image tag yaml key path"
+    required: false
+    default: "image.tag"
+  application_host_path:
+    description: "The application host yaml key path"
+    required: false
+    default: "applicationHosts"
+  host:
+    description: "ssh connect host"
+    required: false
+    default: deploy.apps.jet.work
+  user:
+    description: "ssh connect user name"
+    required: false
+    default: github-deployer
+  port:
+    description: "ssh connect port"
+    required: false
+    default: 22
+  private_key:
+    description: "ssh connect private key"
+    required: true
+  chart_name:
+    description: "It is the name of your chart"
+    required: false
+    default: "application-chart-template"
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Docker Buildx
+
+    - name: Set up Pr source url
+      id: pr_source_url
+
+    - name: Set up Pr number
+      id: pr_number
+
+    - name: Set up Release name
+      id: release_name
+
+    - name: Set up public url
+      id: public_url
+
+    - name: Login ACR
+      id: acr
+      with:
+        registry-info: ${{ inputs.ali-registry-info }}
+
+    - name: Login GHCR
+      id: ghcr
+      with:
+        registry-info: ${{ inputs.gh-registry-info }}
+
+    - name: Metadata
+      id: metadata
+      with:
+        images: |
+          ${{ steps.ghcr.outputs.hostname }}/${{ steps.ghcr.outputs.namespace }}/${{ inputs.release }}
+          ${{ steps.acr.outputs.hostname }}/${{ steps.acr.outputs.namespace }}/${{ inputs.release }}
+        tags: |
+          type=ref,event=pr
+
+    - name: Build and Push
+      with:
+        build-args: |
+          PULL_REQUEST_SOURCE_URL=""
+          IS_PULL_REQUEST_PREVIEW=true
+        cache-from: type=registry,ref=${{ steps.ghcr.outputs.hostname }}/${{ steps.ghcr.outputs.namespace }}/${{ inputs.release }}:buildcache
+        cache-to: type=registry,ref=${{ steps.ghcr.outputs.hostname }}/${{ steps.ghcr.outputs.namespace }}/${{ inputs.release }}:buildcache,mode=max
+        push: true
+        labels: ${{ steps.metadata.outputs.labels }}
+        tags: ${{ steps.metadata.outputs.tags }}
+
+    - name: Deploy the application
+      shell: bash
+      run: |
+        echo "${{ inputs.private_key }}" > private.key && chmod 600 private.key
+
+        cat ${{ inputs.values_file }} <<-END | ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
+          "helm upgrade --install ${{ steps.release_name.outputs.release }} -f - --set ${{ inputs.image_tag_key_path }}=${{ steps.metadata.outputs.tags }} --set ${{ inputs.application_host_path }}=${{ steps.public_url.outputs.hosts }} --namespace test app-template/${{ inputs.chart_name }}"
+        END
