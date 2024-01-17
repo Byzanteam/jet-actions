@@ -5,15 +5,15 @@ inputs:
     description: "Ali container registry infomation"
     required: true
   gh-registry-info:
-    description: "Ali container registry infomation"
+    description: "Github container registry infomation"
     required: true
   release:
-    description: "Release name of the deployment preview"
+    description: "Helm release name of the deployment preview"
     required: true
   values_file:
     description: "Local values yaml file"
     required: false
-    default: ./deploy/values.local.yaml 
+    default: ./.deploy/values.local.yaml 
   image_tag_key_path:
     description: "The image tag yaml key path"
     required: false
@@ -22,25 +22,17 @@ inputs:
     description: "The application host yaml key path"
     required: false
     default: "applicationHosts"
-  host:
-    description: "ssh connect host"
-    required: false
-    default: deploy.apps.jet.work
-  user:
-    description: "ssh connect user name"
-    required: false
-    default: github-deployer
-  port:
-    description: "ssh connect port"
-    required: false
-    default: 22
-  private_key:
-    description: "ssh connect private key"
-    required: true
   chart_name:
     description: "It is the name of your chart"
     required: false
     default: "application-chart-template"
+  k8s_apiserver:
+    description: "K8s apiserver address"
+    required: false
+    default: https://10.64.0.43:6443
+  k8s_token:
+    description: "K8s apiserver auth token"
+    required: true
 
 runs:
   using: 'composite'
@@ -92,8 +84,12 @@ runs:
     - name: Deploy the application
       shell: bash
       run: |
-        echo "${{ inputs.private_key }}" > private.key && chmod 600 private.key
-
-        cat ${{ inputs.values_file }} <<-END | ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
-          "helm upgrade --install ${{ steps.release_name.outputs.release }} -f - --set ${{ inputs.image_tag_key_path }}=${{ steps.metadata.outputs.tags }} --set ${{ inputs.application_host_path }}=${{ steps.public_url.outputs.hosts }} --namespace test app-template/${{ inputs.chart_name }}"
-        END
+        helm upgrade ${{ steps.release_name.outputs.release }} \
+          --kube-token ${{ inputs.k8s_token }} \
+          --kube-apiserver ${{ inputs.k8s_apiserver }} \
+          --values ${{ inputs.values_file }} \
+          --namespace test \
+          --set ${{ inputs.image_tag_key_path }}=${{ steps.metadata.outputs.tags }} \
+          --set "${{ inputs.application_host_path }}={${{ steps.public_url.outputs.hosts }}}" \
+          --install --kube-insecure-skip-tls-verify \
+          app-template/${{ inputs.chart_name }}
