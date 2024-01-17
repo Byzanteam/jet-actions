@@ -4,9 +4,6 @@ inputs:
   ali-registry-info:
     description: "Ali container registry infomation"
     required: true
-  gh-registry-info:
-    description: "Github container registry infomation"
-    required: true
   release:
     description: "Helm release name of the deployment preview"
     required: true
@@ -18,7 +15,7 @@ inputs:
     description: "The image tag yaml key path"
     required: false
     default: "image.tag"
-  application_host_path:
+  host_key_path:
     description: "The application host yaml key path"
     required: false
     default: "applicationHosts"
@@ -38,45 +35,41 @@ runs:
   using: 'composite'
   steps:
     - name: Set up Docker Buildx
-
-    - name: Set up Pr source url
-      id: pr_source_url
-
-    - name: Set up Pr number
-      id: pr_number
+      uses: docker/setup-buildx-action@v3
 
     - name: Set up Release name
       id: release_name
+      run: |
+        REPO_NAME=$(basename ${{ github.repository }})
+        echo "repo=$REPO_NAME" >> $GITHUB_OUTPUT
+        echo "release=$([ -n "${{ inputs.release }}" ] && echo "${{ inputs.release }}" || echo "$REPO_NAME")" >> $GITHUB_OUTPUT
 
     - name: Set up public url
       id: public_url
+      shell: bash
+      run: |
+        echo "host=${{ github.event.pull_request.number }}.${{ steps.release_name.outputs.repo }}.preview.jet.work" >> $GITHUB_OUTPUT
 
     - name: Login ACR
       id: acr
       with:
         registry-info: ${{ inputs.ali-registry-info }}
 
-    - name: Login GHCR
-      id: ghcr
-      with:
-        registry-info: ${{ inputs.gh-registry-info }}
-
     - name: Metadata
       id: metadata
       with:
         images: |
-          ${{ steps.ghcr.outputs.hostname }}/${{ steps.ghcr.outputs.namespace }}/${{ inputs.release }}
-          ${{ steps.acr.outputs.hostname }}/${{ steps.acr.outputs.namespace }}/${{ inputs.release }}
+          ${{ steps.acr.outputs.hostname }}/${{ steps.acr.outputs.namespace }}/${{ steps.release_name.outputs.repo }}
         tags: |
           type=ref,event=pr
 
     - name: Build and Push
       with:
         build-args: |
-          PULL_REQUEST_SOURCE_URL=""
+          PULL_REQUEST_SOURCE_URL=${{ github.event.pull_request.html_url }}
           IS_PULL_REQUEST_PREVIEW=true
-        cache-from: type=registry,ref=${{ steps.ghcr.outputs.hostname }}/${{ steps.ghcr.outputs.namespace }}/${{ inputs.release }}:buildcache
-        cache-to: type=registry,ref=${{ steps.ghcr.outputs.hostname }}/${{ steps.ghcr.outputs.namespace }}/${{ inputs.release }}:buildcache,mode=max
+        cache-from: type=registry,ref=ghcr.io/byzanteam/${{ steps.release_name.outputs.repo }}:buildcache
+        cache-to: type=registry,ref=ghcr.io/byzanteam/${{ steps.release_name.outputs.repo }}:buildcache,mode=max
         push: true
         labels: ${{ steps.metadata.outputs.labels }}
         tags: ${{ steps.metadata.outputs.tags }}
@@ -90,6 +83,6 @@ runs:
           --values ${{ inputs.values_file }} \
           --namespace test \
           --set ${{ inputs.image_tag_key_path }}=${{ steps.metadata.outputs.tags }} \
-          --set "${{ inputs.application_host_path }}={${{ steps.public_url.outputs.hosts }}}" \
+          --set "${{ inputs.host_key_path }}={${{ steps.public_url.outputs.host }}}" \
           --install --kube-insecure-skip-tls-verify \
           app-template/${{ inputs.chart_name }}
