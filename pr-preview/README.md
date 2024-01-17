@@ -14,6 +14,7 @@
 
 ### Outputs
 `public_url` - The public URL for a application deployed on a Kubernetes cluster
+
 `release_name` - Helm release name of the deployment preview
 
 ### Example
