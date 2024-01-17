@@ -1,11 +1,8 @@
 name: Pr preview
 description: "Build the image and deploy the pr code for preview"
 inputs:
-  ali-registry-info:
+  ali_registry_info:
     description: "Ali container registry infomation"
-    required: true
-  release:
-    description: "Helm release name prefix of the deployment preview"
     required: true
   values_file:
     description: "Local values yaml file"
@@ -49,7 +46,7 @@ runs:
       run: |
         REPO_NAME=$(basename ${{ github.repository }})
         echo "repo=$REPO_NAME" >> $GITHUB_OUTPUT
-        echo "release=${{ inputs.release }}-$REPO_NAME" >> $GITHUB_OUTPUT
+        echo "release=$REPO_NAME-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
 
     - name: Set up public url
       id: host
