@@ -5,7 +5,7 @@ inputs:
     description: "Ali container registry infomation"
     required: true
   release:
-    description: "Helm release name of the deployment preview"
+    description: "Helm release name prefix of the deployment preview"
     required: true
   values_file:
     description: "Local values yaml file"
@@ -30,6 +30,13 @@ inputs:
   k8s_token:
     description: "K8s apiserver auth token"
     required: true
+outputs:
+  public_url:
+    description: "The public URL for a application deployed on a Kubernetes cluster"
+    value: ${{ steps.host.outputs.public_url }}
+  release_name:
+    description: "Helm release name of the deployment preview"
+    value: ${{ steps.release_name.outputs.release }}
 
 runs:
   using: 'composite'
@@ -42,13 +49,13 @@ runs:
       run: |
         REPO_NAME=$(basename ${{ github.repository }})
         echo "repo=$REPO_NAME" >> $GITHUB_OUTPUT
-        echo "release=$([ -n "${{ inputs.release }}" ] && echo "${{ inputs.release }}" || echo "$REPO_NAME")" >> $GITHUB_OUTPUT
+        echo "release=${{ inputs.release }}-$REPO_NAME" >> $GITHUB_OUTPUT
 
     - name: Set up public url
-      id: public_url
+      id: host
       shell: bash
       run: |
-        echo "host=${{ github.event.pull_request.number }}.${{ steps.release_name.outputs.repo }}.preview.jet.work" >> $GITHUB_OUTPUT
+        echo "public_url=${{ github.event.pull_request.number }}.${{ steps.release_name.outputs.repo }}.preview.jet.work" >> $GITHUB_OUTPUT
 
     - name: Login ACR
       id: acr
@@ -83,6 +90,6 @@ runs:
           --values ${{ inputs.values_file }} \
           --namespace test \
           --set ${{ inputs.image_tag_key_path }}=${{ steps.metadata.outputs.tags }} \
-          --set "${{ inputs.host_key_path }}={${{ steps.public_url.outputs.host }}}" \
+          --set "${{ inputs.host_key_path }}={${{ steps.host.outputs.public_url }}}" \
           --install --kube-insecure-skip-tls-verify \
           app-template/${{ inputs.chart_name }}
