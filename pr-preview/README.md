@@ -4,7 +4,7 @@
 ### Inputs
 | Key                 | Required| Default                     | Example                                                 |
 | ------------------- | ------- | --------------------------- | ------------------------------------------------------- |
-| ali_registry_info   | true    |                             | ${{ secrets.ALIYUN_SKYLARK_REGISTRY }}                  |
+| registry_info   | true    |                             | ${{ secrets.ALIYUN_SKYLARK_REGISTRY }}                  |
 | values_file         | false   | ./.deploy/values.local.yaml | ./.deploy/values.local.yaml                             |
 | image_tag_key_path  | false   | image.tag                   | image.tag                                               |
 | host_key_path       | false   | applicationHosts            | applicationHosts                                        |
@@ -26,3 +26,10 @@
     k8s_token: ${{ secrets.K8S_TOKEN }}
 ```
 
+### Note
+
+- `registry_info` 参数格式
+```yaml
+# 以 ',' 分割
+$registry,$namespace,$username,$password
+```
