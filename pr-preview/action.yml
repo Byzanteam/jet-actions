@@ -16,10 +16,10 @@ inputs:
     description: "The application host yaml key path"
     required: false
     default: "applicationHosts"
-  chart_name:
-    description: "It is the name of your chart"
+  chart:
+    description: "The chart reference, see: https://helm.sh/docs/helm/helm_install/#:~:text=com/charts/nginx-,CHART%20REFERENCES,-A%20chart%20reference"
     required: false
-    default: "application-chart-template"
+    default: "app-template/application-chart-template"
   k8s_apiserver:
     description: "K8s apiserver address"
     required: false
@@ -90,4 +90,4 @@ runs:
           --set ${{ inputs.image_tag_key_path }}=${{ steps.metadata.outputs.tags }} \
           --set "${{ inputs.host_key_path }}={${{ steps.host.outputs.public_url }}}" \
           --install --kube-insecure-skip-tls-verify \
-          app-template/${{ inputs.chart_name }}
+          ${{ inputs.chart }}
