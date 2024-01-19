@@ -1,8 +1,8 @@
 name: 'Comment Pull Request'
 description: 'Comments a pull request with the provided message'
 inputs:
-  message:
-    description: 'Message that should be printed in the pull request'
+  body:
+    description: 'The comment body'
     required: true
   github_token:
     description: 'Github token of the repository (automatically created by Github)'

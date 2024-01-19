@@ -3,7 +3,7 @@ import * as core from '@actions/core'
 
 async function run() {
   try {
-    const message = core.getInput('message')
+    const message_body = core.getInput('body')
     const token = core.getInput('github_token')
 
     const context = github.context
@@ -16,7 +16,7 @@ async function run() {
       return
     }
 
-    const body = `预览地址：${message}\n${comment_tag_pattern}`
+    const body = `${message_body}\n${comment_tag_pattern}`
 
     const listCommentsResp = await octokit.rest.issues.listComments({
       ...context.repo,
