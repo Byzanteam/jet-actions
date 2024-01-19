@@ -2,7 +2,7 @@ name: Pr preview
 description: "Build the image and deploy the pr code for preview"
 inputs:
   ali_registry_info:
-    description: "Ali container registry infomation"
+    description: "Ali container registry information"
     required: true
   values_file:
     description: "Local values yaml file"
