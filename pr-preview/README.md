@@ -1,4 +1,6 @@
 # Pull request prview action
+## Description:
+- This action builds the pull request code as an image and is deployed to the `apps.jet.work` server by default
 
 ## Usage
 ### Inputs
@@ -27,10 +29,14 @@
 ### Note
 
 - `registry_info` 参数格式
+
 ```yaml
 # 以 ',' 分割
 $registry,$namespace,$username,$password
 ```
 
 - `chart` 参数格式
+
 参考: https://helm.sh/docs/helm/helm_install/#:~:text=com/charts/nginx-,CHART%20REFERENCES,-A%20chart%20reference
+
+- 访问地址格式 `pr_number.repo_name.apps.jet.work`
