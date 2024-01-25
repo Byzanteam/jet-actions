@@ -70,13 +70,13 @@ runs:
     - name: Build and Push
       uses: docker/build-push-action@v5
       with:
-        build-args: |
-          PULL_REQUEST_SOURCE_URL=${{ github.event.pull_request.html_url }}
-          IS_PULL_REQUEST_PREVIEW=true
         cache-from: type=registry,ref=ghcr.io/byzanteam/${{ steps.release_name.outputs.repo }}:buildcache
         cache-to: type=registry,ref=ghcr.io/byzanteam/${{ steps.release_name.outputs.repo }}:buildcache,mode=max
         push: true
-        labels: ${{ steps.metadata.outputs.labels }}
+        labels: |
+          PULL_REQUEST_SOURCE_URL=${{ github.event.pull_request.html_url }}
+          IS_PULL_REQUEST_PREVIEW=true
+          ${{ steps.metadata.outputs.labels }}
         tags: ${{ steps.metadata.outputs.tags }}
 
     - name: Deploy the application
