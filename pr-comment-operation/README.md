@@ -1,4 +1,10 @@
+# Pull request comment operation
+
+## Description
+- This action is used to add or update a pr comment
+
 ## Usage
+
 ### Inputs
 
 | Key                 | Required| Default                    | Example                                                 |
@@ -8,9 +14,9 @@
 
 ### Example
 ```yaml
-- name: Login registry
-  uses: byzanteam/jet-actions/comment-pull-request@main
+- name: pr comment operation
+  uses: byzanteam/jet-actions/pr-comment-operation@main
   with:
-    body: "Some messages printed in pull request"
+    body: "Some messages in pull request comment"
 ```
 
