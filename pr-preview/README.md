@@ -39,4 +39,4 @@ $registry,$namespace,$username,$password
 
 参考: https://helm.sh/docs/helm/helm_install/#:~:text=com/charts/nginx-,CHART%20REFERENCES,-A%20chart%20reference
 
-- 访问地址格式 `pr_number.repo_name.apps.jet.work`
+- 访问地址格式 `$pr_number.$repo_name.apps.jet.work`
