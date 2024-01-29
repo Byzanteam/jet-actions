@@ -1,4 +1,4 @@
-# Pull request comment operation
+# Add or update pr comment
 
 ## Description
 - This action is used to add or update a pr comment
@@ -15,7 +15,7 @@
 ### Example
 ```yaml
 - name: pr comment operation
-  uses: byzanteam/jet-actions/pr-comment-operation@main
+  uses: byzanteam/jet-actions/add-update-pr-comment@main
   with:
     body: "Some messages in pull request comment"
 ```
