@@ -1,0 +1,93 @@
+name: Pr preview
+description: "Build the image and deploy the pr code for preview"
+inputs:
+  registry_info:
+    description: "Container registry information"
+    required: true
+  values_file:
+    description: "Local values yaml file"
+    required: false
+    default: ./.deploy/values.local.yaml 
+  image_tag_key_path:
+    description: "The image tag yaml key path"
+    required: false
+    default: "image.tag"
+  host_key_path:
+    description: "The application host yaml key path"
+    required: false
+    default: "applicationHosts"
+  chart:
+    description: "The chart reference, see: https://helm.sh/docs/helm/helm_install/#:~:text=com/charts/nginx-,CHART%20REFERENCES,-A%20chart%20reference"
+    required: false
+    default: "app-template/application-chart-template"
+  k8s_apiserver:
+    description: "K8s apiserver address"
+    required: false
+    default: https://10.64.0.43:6443
+  k8s_token:
+    description: "K8s apiserver auth token"
+    required: true
+outputs:
+  public_url:
+    description: "The public URL for a application deployed on a Kubernetes cluster"
+    value: ${{ steps.host.outputs.public_url }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Set up Release name
+      id: release_name
+      shell: bash
+      run: |
+        REPO_NAME=$(basename ${{ github.repository }})
+        echo "repo=$REPO_NAME" >> $GITHUB_OUTPUT
+        echo "release=$REPO_NAME-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+
+    - name: Set up public url
+      id: host
+      shell: bash
+      run: |
+        echo "public_url=${{ github.event.pull_request.number }}.${{ steps.release_name.outputs.repo }}.preview.jet.work" >> $GITHUB_OUTPUT
+
+    - name: Login container registry
+      id: cr
+      uses: byzanteam/jet-actions/registry-login@main
+      with:
+        registry-info: ${{ inputs.registry_info }}
+
+    - name: Metadata
+      id: metadata
+      uses: docker/metadata-action@v5
+      with:
+        images: |
+          ${{ steps.cr.outputs.hostname }}/${{ steps.cr.outputs.namespace }}/${{ steps.release_name.outputs.repo }}
+        tags: |
+          type=ref,event=pr
+
+    - name: Build and Push
+      uses: docker/build-push-action@v5
+      with:
+        cache-from: type=registry,ref=ghcr.io/byzanteam/${{ steps.release_name.outputs.repo }}:buildcache
+        cache-to: type=registry,ref=ghcr.io/byzanteam/${{ steps.release_name.outputs.repo }}:buildcache,mode=max
+        push: true
+        labels: |
+          PULL_REQUEST_SOURCE_URL=${{ github.event.pull_request.html_url }}
+          IS_PULL_REQUEST_PREVIEW=true
+          ${{ steps.metadata.outputs.labels }}
+        tags: ${{ steps.metadata.outputs.tags }}
+
+    - name: Deploy the application
+      shell: bash
+      run: |
+        helm upgrade ${{ steps.release_name.outputs.release }} \
+          --kube-token ${{ inputs.k8s_token }} \
+          --kube-apiserver ${{ inputs.k8s_apiserver }} \
+          --values ${{ inputs.values_file }} \
+          --namespace test \
+          --set ${{ inputs.image_tag_key_path }}=${{ steps.metadata.outputs.tags }} \
+          --set "${{ inputs.host_key_path }}={${{ steps.host.outputs.public_url }}}" \
+          --install --kube-insecure-skip-tls-verify \
+          ${{ inputs.chart }}
