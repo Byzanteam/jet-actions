@@ -1,4 +1,4 @@
-# Add or update pr comment
+# Pr comment reviser
 
 ## Description
 - This action is used to add or update a pr comment
@@ -15,7 +15,7 @@
 ### Example
 ```yaml
 - name: pr comment operation
-  uses: byzanteam/jet-actions/add-update-pr-comment@main
+  uses: byzanteam/jet-actions/pr-comment-reviser@main
   with:
     body: "Some messages in pull request comment"
 ```
