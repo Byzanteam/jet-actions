@@ -21,3 +21,7 @@
 ### Note
 
 - Release on the apps.jet.work server is uninstalled by default
+
+- Default uninstall release name is $repo_name-$pr_number
+
+- Set release_name to uninstall the custom release
