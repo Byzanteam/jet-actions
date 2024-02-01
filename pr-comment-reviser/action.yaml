@@ -1,0 +1,13 @@
+name: 'Comment Pull Request'
+description: 'Comments a pull request with the provided message'
+inputs:
+  body:
+    description: 'The comment body'
+    required: true
+  github_token:
+    description: 'Github token of the repository (automatically created by Github)'
+    default: ${{ github.token }}
+    required: false
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
