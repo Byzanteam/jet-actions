@@ -67,7 +67,7 @@ runs:
           exit 1
           ;;
         esac
-          
+
 
     - name: Deploy the application
       shell: bash
