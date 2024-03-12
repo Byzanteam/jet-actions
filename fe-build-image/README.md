@@ -14,7 +14,7 @@ Build and push front-end image for deploy
     dockerfile: ./deploy/Dockerfile
     build-args: |
       SOME_CUSTOM_BUILD_ARG=xxx
-    cache_type: local
+    cache_type: registry
     image_name: my_image
 ```
 #### registries 参数格式
@@ -31,10 +31,11 @@ registries: |-
 ```
 #### cache_type 可选值
 1. 使用 self hosted 时，必须指定 `cache_type` 为 `local`
-2. 使用 Github hosted 时可以不指定或指定 `cache_type` 为 `gha`
+2. 使用 Github hosted 时可以不指定或指定 `cache_type` 为 `registry` 或 `gha`
 ```yaml
 cache_type: local
 ```
+> 注：请将 `cache_type` 的值更改至 `registry`, `local` 和 `gha` 将移除
 
 #### 迁移样例
 https://github.com/Byzanteam/jet-autoflow-example/pull/2
