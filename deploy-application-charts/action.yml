@@ -80,11 +80,9 @@ runs:
 
     - name: The public URL for a application deployed on a Kubernetes cluster.
       id: get-public-url
-      shell: bash
-      run: |
-        echo "public_url<<EOF" >> $GITHUB_OUTPUT
-        echo "$(yq '.applicationHosts' ${{ inputs.values_file }} || yq '.hosts' ${{ inputs.values_file }})" | while read line; do
-          echo $line | awk '{print $2}' >> $GITHUB_OUTPUT
-        done
-        echo "EOF" >> $GITHUB_OUTPUT
-
+      uses: mikefarah/yq@master
+      with:
+        cmd: |
+          echo "$(yq '.applicationHosts' ${{ inputs.values_file }} || yq '.hosts' ${{ inputs.values_file }})" | while read line; do
+            echo $line | awk '{print $2}'
+          done
