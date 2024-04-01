@@ -80,7 +80,7 @@ runs:
 
     - name: The public URL for a application deployed on a Kubernetes cluster.
       id: get-public-url
-      uses: mikefarah/yq@master
+      uses: mikefarah/yq@v4
       with:
         cmd: |
           echo "$(yq '.applicationHosts' ${{ inputs.values_file }} || yq '.hosts' ${{ inputs.values_file }})" | while read line; do
