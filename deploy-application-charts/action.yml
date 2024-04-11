@@ -31,7 +31,7 @@ inputs:
     description: "ssh connect private key"
     required: true
   namespace:
-    description: "Kubernetes cluster namespace, supports two values: production and test"
+    description: "Kubernetes cluster namespace, supports values: nightly, production and test"
     required: true
   chart_name:
     description: "It is the name of your chart"
@@ -56,6 +56,9 @@ runs:
       shell: bash
       run: |
         case ${{ inputs.namespace }} in
+          nightly)
+          echo "NAMESPACE=nightly" >> $GITHUB_ENV
+          ;;
           production)
           echo "NAMESPACE=production" >> $GITHUB_ENV
           ;;
@@ -63,11 +66,10 @@ runs:
           echo "NAMESPACE=test" >> $GITHUB_ENV
           ;;
           *)
-          echo "ERROR: The namespace value only supports production and test!"
+          echo "ERROR: The namespace value only supports nightly, production and test!"
           exit 1
           ;;
         esac
-
 
     - name: Deploy the application
       shell: bash
