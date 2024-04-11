@@ -30,7 +30,8 @@ Deploy the application to a Kubernetes cluster using a Helm Chart
 ```
 
 ### Note:
-* `namespace` supports two values: `production` and `test`. 
+* `namespace` supports values: `nightly`, `production` and `test`. 
+  * The `nightly` namespace corresponds to the nightly deploy environment. Every night deploy or update the application.
   * The `production` namespace corresponds to the production environment. Such as the formal provision of external services.
   * The `test` namespace corresponds to the test environment. Such as pr preview, testing new features.
 * repo address: https://github.com/Byzanteam/helm-charts
