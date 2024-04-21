@@ -9,5 +9,10 @@
     "test": "deno test -A --allow-none --shuffle --parallel",
     "check:types": "deno check **/*.ts",
     "check": "deno fmt --check && deno lint && deno task check:types && deno task test"
+  },
+  "imports": {
+    "@david/dax": "jsr:@david/dax@^0.40.0",
+    "@std/semver": "jsr:@std/semver@^0.223.0",
+    "octokit": "npm:octokit@^3.2.0"
   }
 }
