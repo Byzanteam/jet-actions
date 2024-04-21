@@ -23,6 +23,7 @@
 ```
 
 **example**
+
 ```yaml
 name: Version bump
 
