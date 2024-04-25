@@ -137,7 +137,7 @@ runs:
     # TODO: This operation will be removed after `registry` cache type being used
     - if: ${{ contains(fromJSON('["gha","local"]'), inputs.cache_type) }}
       shell: bash
-      run: echo "::warning title=Will be removed cache type `gha` and `local`::Please change `cache_type` values to `registry`"
+      run: echo "::warning title=Will be removed cache type 'gha' and 'local'::Please change 'cache_type' values to 'registry'"
 
     - name: Logout the custom registries
       shell: bash
