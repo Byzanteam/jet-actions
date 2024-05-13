@@ -49,6 +49,7 @@ runs:
       shell: bash
       run: |
         REPO_NAME=$(basename ${{ github.repository }})
+        REPO_NAME=${REPO_NAME//_/-}
         echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
         echo "RELEASE_NAME=$([ -n "${{ inputs.release_name }}" ] && echo "${{ inputs.release_name }}" || echo "$REPO_NAME")" >> $GITHUB_ENV
 
