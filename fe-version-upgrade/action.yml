@@ -1,0 +1,50 @@
+name: 'FE Package Version Update'
+description: 'auto upgrade package.json version'
+
+inputs:
+  version:
+    description: 'Version updated to, greater than or equal to the current version'
+    required: true
+  package_file:
+    description: 'App package.json file'
+    required: false
+    default: 'package.json'
+
+runs:
+  using: composite
+  steps:
+    - name: 'Get App Info'
+      id: get-app-info
+      uses: byzanteam/jet-actions/fe-get-app-info@main
+      with:
+        package_file: ${{ inputs.package_file }}
+
+    - name: 'compare version'
+      id: compare-version
+      uses: madhead/semver-utils@latest
+      with:
+        version: ${{ inputs.version }}
+        compare-to: ${{ steps.get-app-info.outputs.version }}
+
+    - name: 'Check Inputs Version'
+      shell: bash
+      run: |
+        if [[ '${{ steps.compare-version.outputs.comparison-result }}' != '>' ]]; then
+          echo "::error new version must greater than current version"
+          exit 1
+        fi
+
+    - name: 'Update package.json version'
+      uses: jossef/action-set-json-field@v2.2
+      with:
+        file: ${{ inputs.package_file }}
+        field: version
+        value: ${{ inputs.version }}
+
+    - name: 'Create Pull Request'
+      uses: peter-evans/create-pull-request@v6
+      with:
+        branch: chore/bot/update-${{ steps.get-app-info.outputs.name }}-version
+        title: 'chore: update app ${{ steps.get-app-info.outputs.name }} to v${{ inputs.version }}'
+        commit-message: 'chore: update app ${{ steps.get-app-info.outputs.name }} to v${{ inputs.version }}'
+        base: main
