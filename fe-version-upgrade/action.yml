@@ -9,6 +9,9 @@ inputs:
     description: 'App package.json file'
     required: false
     default: 'package.json'
+  scope:
+    description: 'commit-message scope'
+    required: false
 
 runs:
   using: composite
@@ -42,6 +45,16 @@ runs:
         value: ${{ inputs.version }}
 
     - name: 'Create Pull Request'
+      if: ${{ inputs.scope }}
+      uses: peter-evans/create-pull-request@v6
+      with:
+        branch: chore/bot/update-${{ steps.get-app-info.outputs.name }}-version
+        title: 'chore(${{ inputs.scope }}): update app ${{ steps.get-app-info.outputs.name }} to v${{ inputs.version }}'
+        commit-message: 'chore(${{ inputs.scope }}): update app ${{ steps.get-app-info.outputs.name }} to v${{ inputs.version }}'
+        base: main
+
+    - name: 'Create Pull Request'
+      if: ${{ ! inputs.scope }}
       uses: peter-evans/create-pull-request@v6
       with:
         branch: chore/bot/update-${{ steps.get-app-info.outputs.name }}-version
