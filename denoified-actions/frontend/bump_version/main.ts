@@ -70,4 +70,4 @@ const openedPr = await octoKit.request("POST /repos/{owner}/{repo}/pulls", {
   title: commitMessage,
 });
 
-$.log(`Opened PR at ${openedPr.data.url}`);
+$.log(`Opened PR at ${openedPr.data.html_url}`);
