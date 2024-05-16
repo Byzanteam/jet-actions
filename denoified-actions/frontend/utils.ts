@@ -1,11 +1,19 @@
 import { fileExists } from "../fundamental/utils.ts";
-import { join } from "jsr:@std/path@^0.221.0";
+import { join } from "@std/path";
+import { parse } from "@std/yaml";
 
 export async function isMonorepoProject() {
   const rootPath = Deno.cwd();
 
-  if (await fileExists(join(rootPath, "pnpm-workspace.yaml"))) {
-    return true;
+  const pnpmWorkspaceYamlPath = join(rootPath, "pnpm-workspace.yaml");
+  if (await fileExists(pnpmWorkspaceYamlPath)) {
+    const content = parse(pnpmWorkspaceYamlPath) as {
+      packages?: Array<string>;
+    };
+
+    if (content.packages && content.packages.length) {
+      return true;
+    }
   }
 
   const rootPackageJsonPath = join(rootPath, "package.json");
@@ -14,11 +22,8 @@ export async function isMonorepoProject() {
       await Deno.readTextFile(rootPackageJsonPath),
     );
 
-    if (
-      Array.isArray(packageInfo.workspaces) && packageInfo.workspaces.length
-    ) {
-      return true;
-    }
+    return Array.isArray(packageInfo.workspaces) &&
+      packageInfo.workspaces.length;
   }
 
   return false;
