@@ -1,0 +1,52 @@
+name: 'FE Package Version Update'
+description: 'auto upgrade package.json version'
+
+inputs:
+  release-kind:
+    description: 'Kind of version bump, one of: major, minor, patch.'
+    required: true
+  package-file:
+    description: 'App package.json file'
+    required: false
+    default: 'package.json'
+  gh-token:
+    description: 'secrets.GITHUB_TOKEN'
+    required: true
+  workflow-actor:
+    description: 'github.actor'
+    required: true
+  repository:
+    description: "github.repository"
+    required: true
+
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        path: 'main'
+
+    - uses: actions/checkout@v4
+      with:
+        repository: 'Byzanteam/jet-actions'
+        path: 'jet-actions'
+        sparse-checkout: |
+          denoified-actions/
+        ref: 'bump-version'
+
+    - uses: denoland/setup-deno@v1
+      with:
+        deno-version: v1.x
+
+    - name: Create PR
+      shell: bash
+      env:
+        RELEASE_KIND: ${{ inputs.release-kind }}
+        PACKAGE_FILE: ${{ inputs.package-file }}
+        GH_TOKEN: ${{ inputs.gh-token }}
+        GH_WORKFLOW_ACTOR: ${{ inputs.workflow-actor }}
+        GH_REPOSITORY: ${{ inputs.repository }}
+      working-directory: './main'
+      run:
+        ../jet-actions/denoified-actions/frontend/bump_version/main.ts

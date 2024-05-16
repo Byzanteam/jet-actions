@@ -29,3 +29,21 @@ export function getEnvVarOrThrow(name: string) {
   }
   return value;
 }
+
+export async function fileExists(path: string) {
+  try {
+    const stat = await Deno.lstat(path);
+
+    if (!stat.isFile) {
+      throw new Error(`path exists, but not a file`);
+    }
+
+    return true;
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) {
+      return false;
+    }
+
+    throw error;
+  }
+}
