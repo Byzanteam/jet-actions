@@ -46,4 +46,4 @@ runs:
         GH_WORKFLOW_ACTOR: ${{ inputs.workflow-actor }}
         GH_REPOSITORY: ${{ inputs.repository }}
       working-directory: './main'
-      run: ../jet-actions/denoified-actions/frontend/bump_version/main.ts
+      run: ../jet-actions/denoified-actions/javascript/bump_version/main.ts

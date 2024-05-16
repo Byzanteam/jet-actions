@@ -56,6 +56,7 @@ const monorepoProject = await isMonorepoProject();
 const releaseBranchTitle = monorepoProject
   ? `release/${packageInfo.name}/${newVersion}`
   : `release/${newVersion}`;
+
 const commitMessage = monorepoProject
   ? `chore(${packageInfo.name}): update ${packageInfo.name} version to ${newVersion}`
   : `chore: update ${packageInfo.name} version to ${newVersion}`;
@@ -88,7 +89,7 @@ To make edits to this PR:
 \`\`\`shell
 git fetch origin ${releaseBranchTitle} && git checkout -b ${releaseBranchTitle} origin/${releaseBranchTitle}
 \`\`\`
-ncc @${actor}`,
+cc @${actor}`,
 });
 
 $.log(`Opened PR at ${openedPr.data.html_url}`);

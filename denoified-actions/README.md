@@ -54,7 +54,7 @@ jobs:
           release-kind: ${{ inputs.releaseKind }}
 ```
 
-## frontend
+## Javascript
 
 ### App bump new version
 
@@ -69,7 +69,7 @@ jobs:
 | package-file   | The package.json file path (default package.json) | false    |
 
 ```yaml
-- uses: Byzanteam/jet-actions/denoified-actions/elixir/bump_version@main
+- uses: Byzanteam/jet-actions/denoified-actions/javascript/bump_version@main
   with:
     gh-token: ${{ secrets.GITHUB_TOKEN }}
     workflow-actor: ${{ github.actor }}
@@ -102,7 +102,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - uses: Byzanteam/jet-actions/denoified-actions/frontend/bump_version@main
+      - uses: Byzanteam/jet-actions/denoified-actions/javascript/bump_version@main
         with:
           gh-token: ${{ secrets.GITHUB_TOKEN }}
           workflow-actor: ${{ github.actor }}

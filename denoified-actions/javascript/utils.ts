@@ -7,7 +7,7 @@ export async function isMonorepoProject() {
 
   const pnpmWorkspaceYamlPath = join(rootPath, "pnpm-workspace.yaml");
   if (await fileExists(pnpmWorkspaceYamlPath)) {
-    const content = parse(pnpmWorkspaceYamlPath) as {
+    const content = parse(await Deno.readTextFile(pnpmWorkspaceYamlPath)) as {
       packages?: Array<string>;
     };
 
