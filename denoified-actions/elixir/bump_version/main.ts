@@ -61,7 +61,7 @@ const openedPr = await octoKit.request("POST /repos/{owner}/{repo}/pulls", {
   title: message,
   body: getPRBody(),
 });
-$.log(`Opened PR at ${openedPr.data.url}`);
+$.log(`Opened PR at ${openedPr.data.html_url}`);
 
 function getPRBody() {
   return `Bumped ${repo.name} version\n\n` +
