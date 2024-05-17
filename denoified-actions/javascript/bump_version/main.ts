@@ -40,7 +40,7 @@ const newVersion = format(increment(parse(packageInfo.version), bumpKind));
 
 packageInfo.version = newVersion;
 
-await Deno.writeTextFile(packageFile, JSON.stringify(packageInfo, null, "  "));
+await Deno.writeTextFile(packageFile, `${JSON.stringify(packageInfo, null, 2)}\n`);
 
 const rootPath = new Path(Deno.cwd());
 const repo = new Repo(rootPath);
