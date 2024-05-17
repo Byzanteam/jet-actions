@@ -31,7 +31,9 @@ if (!fileExists(packageFile)) {
   );
 }
 
-const packageInfo = JSON.parse(await Deno.readTextFile(packageFile)) as {
+const packageContent = await Deno.readTextFile(packageFile);
+
+const packageInfo = JSON.parse(packageContent) as {
   version: string;
   name: string;
 };
@@ -40,7 +42,17 @@ const newVersion = format(increment(parse(packageInfo.version), bumpKind));
 
 packageInfo.version = newVersion;
 
-await Deno.writeTextFile(packageFile, `${JSON.stringify(packageInfo, null, 2)}\n`);
+await Deno.writeTextFile(
+  packageFile,
+  packageContent.replace(
+    /"version":(.*?)"(?<version>.+?)"/,
+    (match, ...arg) => {
+      const groups = arg.at(-1);
+
+      return match.replace(groups.version, newVersion);
+    },
+  ),
+);
 
 const rootPath = new Path(Deno.cwd());
 const repo = new Repo(rootPath);
