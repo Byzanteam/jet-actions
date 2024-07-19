@@ -64,9 +64,8 @@ runs:
       with:
         images: ${{ steps.registries.outputs.images }}
         tags: |
-          type=raw,event=branch,enable={{is_default_branch}},value=nightly
-          type=sha,event=branch,enable={{is_default_branch}}
-          type=sha,event=tag
+          type=raw,enable={{is_default_branch}},value=nightly
+          type=sha,enable={{is_default_branch}}
           type=semver,pattern={{version}}
 
     - if: ${{ inputs.cache_type == 'registry' }}
