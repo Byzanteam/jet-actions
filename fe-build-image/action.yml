@@ -75,10 +75,10 @@ runs:
         context: ${{ inputs.context }}
         file: ${{ inputs.dockerfile }}
         build-args: |
-          APP_VSN=${{ steps.meta.outputs.version }}
           APP_NAME=${{ steps.image.outputs.image_name }}
+          APP_VERSION=${{ fromJSON(steps.metadata.outputs.json).labels['org.opencontainers.image.version'] }}
+          APP_REVISION=${{ fromJSON(steps.metadata.outputs.json).labels['org.opencontainers.image.revision'] }}
           SOURCE_REPO_URL=${{ github.repositoryUrl }}
-          SOURCE_SHA=${{ github.sha }}
           ${{ inputs.build_args }}
         push: true
         labels: ${{ steps.meta.outputs.labels }}
@@ -94,10 +94,10 @@ runs:
         context: ${{ inputs.context }}
         file: ${{ inputs.dockerfile }}
         build-args: |
-          APP_VSN=${{ steps.meta.outputs.version }}
           APP_NAME=${{ steps.image.outputs.image_name }}
+          APP_VERSION=${{ fromJSON(steps.metadata.outputs.json).labels['org.opencontainers.image.version'] }}
+          APP_REVISION=${{ fromJSON(steps.metadata.outputs.json).labels['org.opencontainers.image.revision'] }}
           SOURCE_REPO_URL=${{ github.repositoryUrl }}
-          SOURCE_SHA=${{ github.sha }}
           ${{ inputs.build_args }}
         push: true
         labels: ${{ steps.meta.outputs.labels }}
@@ -113,10 +113,10 @@ runs:
         context: ${{ inputs.context }}
         file: ${{ inputs.dockerfile }}
         build-args: |
-          APP_VSN=${{ steps.meta.outputs.version }}
           APP_NAME=${{ steps.image.outputs.image_name }}
+          APP_VERSION=${{ fromJSON(steps.metadata.outputs.json).labels['org.opencontainers.image.version'] }}
+          APP_REVISION=${{ fromJSON(steps.metadata.outputs.json).labels['org.opencontainers.image.revision'] }}
           SOURCE_REPO_URL=${{ github.repositoryUrl }}
-          SOURCE_SHA=${{ github.sha }}
           ${{ inputs.build_args }}
         push: true
         labels: ${{ steps.meta.outputs.labels }}
