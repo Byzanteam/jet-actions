@@ -76,8 +76,8 @@ runs:
         file: ${{ inputs.dockerfile }}
         build-args: |
           APP_NAME=${{ steps.image.outputs.image_name }}
-          APP_VERSION=${{ fromJSON(steps.metadata.outputs.json).labels['org.opencontainers.image.version'] }}
-          APP_REVISION=${{ fromJSON(steps.metadata.outputs.json).labels['org.opencontainers.image.revision'] }}
+          APP_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+          APP_REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           SOURCE_REPO_URL=${{ github.repositoryUrl }}
           ${{ inputs.build_args }}
         push: true
@@ -95,8 +95,8 @@ runs:
         file: ${{ inputs.dockerfile }}
         build-args: |
           APP_NAME=${{ steps.image.outputs.image_name }}
-          APP_VERSION=${{ fromJSON(steps.metadata.outputs.json).labels['org.opencontainers.image.version'] }}
-          APP_REVISION=${{ fromJSON(steps.metadata.outputs.json).labels['org.opencontainers.image.revision'] }}
+          APP_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+          APP_REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           SOURCE_REPO_URL=${{ github.repositoryUrl }}
           ${{ inputs.build_args }}
         push: true
@@ -114,8 +114,8 @@ runs:
         file: ${{ inputs.dockerfile }}
         build-args: |
           APP_NAME=${{ steps.image.outputs.image_name }}
-          APP_VERSION=${{ fromJSON(steps.metadata.outputs.json).labels['org.opencontainers.image.version'] }}
-          APP_REVISION=${{ fromJSON(steps.metadata.outputs.json).labels['org.opencontainers.image.revision'] }}
+          APP_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+          APP_REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           SOURCE_REPO_URL=${{ github.repositoryUrl }}
           ${{ inputs.build_args }}
         push: true
