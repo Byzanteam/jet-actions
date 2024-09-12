@@ -16,10 +16,6 @@ inputs:
   build_args:
     description: List of build-time variables
     required: false
-  cache_type:
-    description: "When using self hosted to builds the image, should set the cache storage directory. Only three values are supported: local, gha and registry."
-    default: 'registry'
-    required: false
   image_name:
     description: Set an image name, or derive it from the repo name by default
     required: false
@@ -58,6 +54,9 @@ runs:
           echo "$PASSWORD" | docker login -u $USERNAME --password-stdin $REGISTRY
         done
 
+    - name: Buildx
+      uses: byzanteam/jet/jet-actions/setup-multi-platform-buildx@main
+
     - name: Docker meta
       id: meta
       uses: docker/metadata-action@v5
@@ -68,8 +67,7 @@ runs:
           type=sha
           type=semver,pattern={{version}}
 
-    - if: ${{ inputs.cache_type == 'registry' }}
-      name: Build and push
+    - name: Build and push
       uses: docker/build-push-action@v5
       with:
         context: ${{ inputs.context }}
@@ -83,64 +81,6 @@ runs:
         push: true
         labels: ${{ steps.meta.outputs.labels }}
         tags: ${{ steps.meta.outputs.tags }}
+        platforms: linux/amd64,linux/arm64
         cache-from: type=registry,ref=ghcr.io/byzanteam/${{ steps.image.outputs.image_name }}:buildcache
         cache-to: type=registry,ref=ghcr.io/byzanteam/${{ steps.image.outputs.image_name }}:buildcache,mode=max
-
-    # TODO: This cache type will be  removed after `registry` cache type being used
-    - if: ${{ inputs.cache_type == 'gha' }}
-      name: Build and push
-      uses: docker/build-push-action@v5
-      with:
-        context: ${{ inputs.context }}
-        file: ${{ inputs.dockerfile }}
-        build-args: |
-          APP_NAME=${{ steps.image.outputs.image_name }}
-          APP_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
-          APP_REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-          SOURCE_REPO_URL=${{ github.repositoryUrl }}
-          ${{ inputs.build_args }}
-        push: true
-        labels: ${{ steps.meta.outputs.labels }}
-        tags: ${{ steps.meta.outputs.tags }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-
-    # TODO: This cache type will be  removed after `registry` cache type being used
-    - if: ${{ inputs.cache_type == 'local' }}
-      name: Build and push
-      uses: docker/build-push-action@v5
-      with:
-        context: ${{ inputs.context }}
-        file: ${{ inputs.dockerfile }}
-        build-args: |
-          APP_NAME=${{ steps.image.outputs.image_name }}
-          APP_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
-          APP_REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-          SOURCE_REPO_URL=${{ github.repositoryUrl }}
-          ${{ inputs.build_args }}
-        push: true
-        labels: ${{ steps.meta.outputs.labels }}
-        tags: ${{ steps.meta.outputs.tags }}
-        cache-from: type=local,src=/tmp/.buildx-cache-${{ steps.image.outputs.image_name }}
-        cache-to: type=local,dest=/tmp/.buildx-cache-${{ steps.image.outputs.image_name }}-new,mode=max
-
-    # TODO: This operation will be removed after `registry` cache type being used
-    - if: ${{ inputs.cache_type == 'local' }}
-      name: Move cache
-      shell: bash
-      run: |
-        rm -rf /tmp/.buildx-cache-${{ steps.image.outputs.image_name }}
-        mv /tmp/.buildx-cache-${{ steps.image.outputs.image_name }}-new /tmp/.buildx-cache-${{ steps.image.outputs.image_name }}
-
-    # TODO: This operation will be removed after `registry` cache type being used
-    - if: ${{ contains(fromJSON('["gha","local"]'), inputs.cache_type) }}
-      shell: bash
-      run: echo "::warning title=Will be removed cache type 'gha' and 'local'::Please change 'cache_type' values to 'registry'"
-
-    - name: Logout the custom registries
-      shell: bash
-      run: |
-        echo "${{ inputs.registries }}" | while read line; do
-          REGISTRY=$(echo $line | awk -F',' '{print $1}')
-          docker logout $REGISTRY
-        done
