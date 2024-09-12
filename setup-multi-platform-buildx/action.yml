@@ -1,5 +1,5 @@
 name: Multi Platform Buildx
-description: "Setup multi platfrom buildx."
+description: "Setup multi platform buildx."
 
 runs:
   using: 'composite'
