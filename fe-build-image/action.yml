@@ -55,7 +55,7 @@ runs:
         done
 
     - name: Buildx
-      uses: byzanteam/jet/jet-actions/setup-multi-platform-buildx@main
+      uses: byzanteam/jet-actions/setup-multi-platform-buildx@main
 
     - name: Docker meta
       id: meta
