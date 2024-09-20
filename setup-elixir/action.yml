@@ -1,5 +1,6 @@
 name: Setup Elixir
 description: Setup a specific version of Erlang/OTP and Elixir
+
 inputs:
   fetch-depth:
     description: Number of commits to fetch
@@ -7,20 +8,25 @@ inputs:
   submodules:
     description: Whether to checkout submodules
     default: false
+  use-tool-versions:
+    description: Whether to use .tool-versions file for version management
+    default: false
   elixir-version:
     description: Version range or exact version of Elixir
-    required: true
+    required: false
   otp-version:
     description: Version range or exact version of Erlang/OTP
-    required: true
+    required: false
   cache-path:
     description: Paths that should be cached
     default: |
       _build
       deps
+
 outputs:
   cache-hit:
     description: A boolean value to indicate an exact cache was found
+
 runs:
   using: composite
   steps:
@@ -28,10 +34,20 @@ runs:
       with:
         fetch-depth: ${{ inputs.fetch-depth }}
         submodules: ${{ inputs.submodules }}
-    - uses: erlef/setup-beam@v1
+
+    - name: Setup Erlang/OTP and Elixir using .tool-versions
+      if: ${{ inputs.use-tool-versions == 'true' }}
+      uses: erlef/setup-beam@v1
+      with:
+        version-file: '.tool-versions'
+
+    - name: Setup Erlang/OTP and Elixir from input versions
+      if: ${{ inputs.use-tool-versions == 'false' }}
+      uses: erlef/setup-beam@v1
       with:
         otp-version: ${{ inputs.otp-version }}
         elixir-version: ${{ inputs.elixir-version }}
+
     - id: cache
       uses: actions/cache@v4
       with:
@@ -39,5 +55,6 @@ runs:
         key: mix-${{ runner.os }}-${{ inputs.otp-version }}-${{ inputs.elixir-version }}-${{ hashFiles('**/mix.lock') }}
         restore-keys: |
           mix-${{ runner.os }}-${{ inputs.otp-version }}-${{ inputs.elixir-version }}-
+
     - run: echo "cache-hit=${{ steps.cache.outputs.cache-hit }}" >> $GITHUB_OUTPUT
       shell: bash
