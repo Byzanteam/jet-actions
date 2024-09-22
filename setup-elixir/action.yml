@@ -34,9 +34,7 @@ runs:
       with:
         fetch-depth: ${{ inputs.fetch-depth }}
         submodules: ${{ inputs.submodules }}
-
-    - name: Setup Erlang/OTP and Elixir
-      uses: erlef/setup-beam@v1
+    - uses: erlef/setup-beam@v1
       with:
         otp-version: ${{ inputs.otp-version }}
         elixir-version: ${{ inputs.elixir-version }}
