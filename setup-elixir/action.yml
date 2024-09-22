@@ -8,7 +8,7 @@ inputs:
   submodules:
     description: Whether to checkout submodules
     default: false
-  use-tool-versions:
+  tool-versions:
     description: Whether to use .tool-versions file for version management
     default: false
   elixir-version:
@@ -35,18 +35,13 @@ runs:
         fetch-depth: ${{ inputs.fetch-depth }}
         submodules: ${{ inputs.submodules }}
 
-    - name: Setup Erlang/OTP and Elixir using .tool-versions
-      if: ${{ inputs.use-tool-versions == 'true' }}
-      uses: erlef/setup-beam@v1
-      with:
-        version-file: '.tool-versions'
-
-    - name: Setup Erlang/OTP and Elixir from input versions
-      if: ${{ inputs.use-tool-versions == 'false' }}
+    - name: Setup Erlang/OTP and Elixir
       uses: erlef/setup-beam@v1
       with:
         otp-version: ${{ inputs.otp-version }}
         elixir-version: ${{ inputs.elixir-version }}
+        version-file: ${{ inputs.tool-versions == 'true' && '.tool-versions' || '' }}
+        version-type: ${{ inputs.tool-versions == 'true' && 'strict' || 'range' }}
 
     - id: cache
       uses: actions/cache@v4
