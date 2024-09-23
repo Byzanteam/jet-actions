@@ -10,7 +10,7 @@ inputs:
     default: false
   version-file:
     description: Version file name
-    default: ".tool-versions"
+    required: false
   elixir-version:
     description: Version range or exact version of Elixir
     required: false
