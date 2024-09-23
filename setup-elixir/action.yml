@@ -8,9 +8,9 @@ inputs:
   submodules:
     description: Whether to checkout submodules
     default: false
-  tool-versions:
-    description: Whether to use .tool-versions file for version management
-    default: false
+  version-file:
+    description: Version file name
+    default: ".tool-versions"
   elixir-version:
     description: Version range or exact version of Elixir
     required: false
