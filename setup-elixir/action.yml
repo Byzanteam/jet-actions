@@ -36,10 +36,10 @@ runs:
         submodules: ${{ inputs.submodules }}
     - uses: erlef/setup-beam@v1
       with:
-       version-file: ${{ inputs.version-file }}
-          version-type: strict
-          otp-version: ${{ inputs.otp-version }}
-          elixir-version: ${{ inputs.elixir-version }}
+        version-file: ${{ inputs.version-file }}
+        version-type: strict
+        otp-version: ${{ inputs.otp-version }}
+        elixir-version: ${{ inputs.elixir-version }}
 
     - id: cache
       uses: actions/cache@v4
