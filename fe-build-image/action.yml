@@ -16,6 +16,10 @@ inputs:
   build_args:
     description: List of build-time variables
     required: false
+  platforms:
+    description: List of platforms for which to build the image
+    required: false
+    default: linux/amd64,linux/arm64
   image_name:
     description: Set an image name, or derive it from the repo name by default
     required: false
@@ -78,6 +82,6 @@ runs:
         push: true
         labels: ${{ steps.meta.outputs.labels }}
         tags: ${{ steps.meta.outputs.tags }}
-        platforms: linux/amd64,linux/arm64
+        platforms: ${{ inputs.platforms }}
         cache-from: type=registry,ref=ghcr.io/byzanteam/${{ steps.image.outputs.image_name }}:buildcache
         cache-to: type=registry,ref=ghcr.io/byzanteam/${{ steps.image.outputs.image_name }}:buildcache,mode=max
