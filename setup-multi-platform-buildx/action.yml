@@ -9,9 +9,9 @@ runs:
       with:
         driver: kubernetes
         platforms: linux/amd64
-        driver-opts: namespace=arc-runners,nodeselector=kubernetes.io/arch=amd64,requests.cpu=300m,requests.memory=300Mi,limits.cpu=1,limits.memory=1G
+        driver-opts: namespace=arc-runners,nodeselector=kubernetes.io/arch=amd64,requests.cpu=300m,requests.memory=300Mi,limits.cpu=1.5,limits.memory=1.5G
         append: |
           - platforms: linux/arm64
             driver-opts:
               - namespace=arc-runners
-              - nodeselector=kubernetes.io/arch=arm64,requests.cpu=300m,requests.memory=300Mi,limits.cpu=1,limits.memory=1G
+              - nodeselector=kubernetes.io/arch=arm64,requests.cpu=300m,requests.memory=300Mi,limits.cpu=1,limits.memory=1.2G
