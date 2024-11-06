@@ -14,4 +14,4 @@ runs:
           - platforms: linux/arm64
             driver-opts:
               - namespace=arc-runners
-              - nodeselector=kubernetes.io/arch=arm64,requests.cpu=300m,requests.memory=300Mi,limits.cpu=1.8,limits.memory=1.8G
+              - nodeselector=kubernetes.io/arch=arm64,requests.cpu=300m,requests.memory=300Mi,limits.cpu=1.2,limits.memory=2G
