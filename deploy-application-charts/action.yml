@@ -26,7 +26,7 @@ inputs:
   port:
     description: "ssh connect port"
     required: false
-    default: 22
+    default: "22"
   private_key:
     description: "ssh connect private key"
     required: true
@@ -35,8 +35,12 @@ inputs:
     required: true
   chart_name:
     description: "It is the name of your chart"
+    deprecationMessage: "Use chart instead, append repo `app-template` to the chart_name. For example, `jet-helm-chart` should be `app-template/jet-helm-chart`"
     required: false
     default: "application-chart-template"
+  chart:
+    description: "It is the name of your chart, in format of `repo/chart`. eg: byzanteam/application-chart-template, app-template/application-chart-template"
+    required: false
 outputs:
   public_url:
     description: "The public URL for a application deployed on a Kubernetes cluster"
@@ -72,13 +76,22 @@ runs:
           ;;
         esac
 
+    - name: Get chart
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.chart }}" ]; then
+          echo "CHART=app-template/${{ inputs.chart_name }}" >> $GITHUB_ENV
+        else
+          echo "CHART=${{ inputs.chart }}" >> $GITHUB_ENV
+        fi
+
     - name: Deploy the application
       shell: bash
       run: |
         echo "${{ inputs.private_key }}" > private.key && chmod 600 private.key
 
         cat ${{ inputs.values_file }} <<-END | ssh -i private.key -o "StrictHostKeyChecking=no" ${{ inputs.user }}@${{ inputs.host }} -p ${{ inputs.port }} \
-          "helm upgrade --install ${{ env.REPO_NAME }}-${{ env.RELEASE_NAME }} -f - --set ${{ inputs.image_tag_key_path }}=${{ inputs.image_tag }} --namespace ${{env.NAMESPACE }} app-template/${{ inputs.chart_name }}"
+          "helm upgrade --install ${{ env.REPO_NAME }}-${{ env.RELEASE_NAME }} -f - --set ${{ inputs.image_tag_key_path }}=${{ inputs.image_tag }} --namespace ${{env.NAMESPACE }} ${{ env.CHART }}"
         END
 
     - name: The public URL for a application deployed on a Kubernetes cluster.
