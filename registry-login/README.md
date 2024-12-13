@@ -14,7 +14,7 @@
 - name: Login registry
   uses: byzanteam/jet-actions/registry-login@main
   with:
-    ${{ secrets.ALIYUN_SKYLARK_REGISTRY }}
+    registry-info: ${{ secrets.ALIYUN_SKYLARK_REGISTRY }}
 ```
 
 #### registries 参数格式
