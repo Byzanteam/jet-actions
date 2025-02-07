@@ -23,13 +23,22 @@ export function getInputs(): Inputs {
   }
 
   if (!inputs.username || !inputs.password) {
+    logRegistryInfo(registryInfo)
     throw new Error('Username and password required')
   } else if (!inputs.hostname) {
+    logRegistryInfo(registryInfo)
     throw new Error('Registry hostname required')
   } else if (!inputs.ns) {
+    logRegistryInfo(registryInfo)
     throw new Error('Registry ns required')
   } else {
     return inputs
+  }
+}
+
+function logRegistryInfo(value: string) {
+  if (core.isDebug()) {
+    core.debug(`registryInfo: ${value}`)
   }
 }
 
