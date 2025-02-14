@@ -80,7 +80,7 @@ runs:
       shell: bash
       run: |
         if [ -z "${{ inputs.chart }}" ]; then
-          echo "CHART=app-template/${{ inputs.chart_name }}" >> $GITHUB_ENV
+          echo "CHART=byzanteam/${{ inputs.chart_name }}" >> $GITHUB_ENV
         else
           echo "CHART=${{ inputs.chart }}" >> $GITHUB_ENV
         fi
